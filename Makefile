@@ -1,8 +1,6 @@
 .PHONY: install test lint format run help
 
-PYTEST := poetry run pytest
-UVICORN := poetry run uvicorn
-RUFF := poetry run ruff
+BACKEND := backend
 
 help:
 	@echo "Available commands:"
@@ -14,25 +12,25 @@ help:
 
 install:
 	@echo "Installing the project..."
-	@poetry install
+	@cd $(BACKEND) && poetry install
 	@echo "Installation complete."
 
 test:
 	@echo "Running tests..."
-	@$(PYTEST)
+	@cd $(BACKEND) && poetry run pytest
 	@echo "Tests completed."
 
 lint:
 	@echo "Running linter..."
-	@$(RUFF) check .
+	@cd $(BACKEND) && poetry run ruff check .
 	@echo "Linting completed."
 
 format:
 	@echo "Formatting code..."
-	@$(RUFF) format .
+	@cd $(BACKEND) && poetry run ruff format .
 	@echo "Code formatting completed."
 
 run:
 	@echo "Running the project..."
-	@$(UVICORN) main:app --reload
+	@cd $(BACKEND) && poetry run uvicorn main:app --reload
 	@echo "Project execution finished."

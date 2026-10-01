@@ -1,4 +1,4 @@
-.PHONY: install test test-verbose lint format run build up down compose-build logs ps help
+.PHONY: install test test-verbose test-unit test-integration lint format run build up down compose-build logs ps help
 
 BACKEND := backend
 IMAGE := c216-backend
@@ -8,6 +8,8 @@ help:
 	@echo "  make install   - Install the project dependencies"
 	@echo "  make test      - Run the test suite"
 	@echo "  make test-verbose - Run the test suite in verbose mode"
+	@echo "  make test-unit - Run only the unit tests"
+	@echo "  make test-integration - Run only the integration tests"
 	@echo "  make lint      - Run the linter to check code quality"
 	@echo "  make format    - Format the code according to style guidelines"
 	@echo "  make run       - Run the project using Uvicorn"
@@ -33,6 +35,16 @@ test-verbose:
 	@cd $(BACKEND) && poetry run pytest -v
 	@echo "Verbose tests completed."
 
+test-unit:
+	@echo "Running unit tests..."
+	@cd $(BACKEND) && poetry run pytest tests/unit
+	@echo "Unit tests completed."
+
+test-integration:
+	@echo "Running integration tests..."
+	@cd $(BACKEND) && poetry run pytest tests/integration
+	@echo "Integration tests completed."
+
 lint:
 	@echo "Running linter..."
 	@cd $(BACKEND) && poetry run ruff check .
@@ -45,7 +57,7 @@ format:
 
 run:
 	@echo "Running the project..."
-	@cd $(BACKEND) && poetry run uvicorn main:app --reload
+	@cd $(BACKEND) && poetry run uvicorn app.main:app --reload
 	@echo "Project execution finished."
 
 build:

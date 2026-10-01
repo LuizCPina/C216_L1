@@ -1,4 +1,4 @@
-.PHONY: install test lint format run build up down compose-build logs ps help
+.PHONY: install test test-verbose lint format run build up down compose-build logs ps help
 
 BACKEND := backend
 IMAGE := c216-backend
@@ -7,6 +7,7 @@ help:
 	@echo "Available commands:"
 	@echo "  make install   - Install the project dependencies"
 	@echo "  make test      - Run the test suite"
+	@echo "  make test-verbose - Run the test suite in verbose mode"
 	@echo "  make lint      - Run the linter to check code quality"
 	@echo "  make format    - Format the code according to style guidelines"
 	@echo "  make run       - Run the project using Uvicorn"
@@ -19,13 +20,18 @@ help:
 
 install:
 	@echo "Installing the project..."
-	@cd $(BACKEND) && poetry install
+	@cd $(BACKEND) && poetry install --no-root
 	@echo "Installation complete."
 
 test:
 	@echo "Running tests..."
 	@cd $(BACKEND) && poetry run pytest
 	@echo "Tests completed."
+
+test-verbose:
+	@echo "Running tests in verbose mode..."
+	@cd $(BACKEND) && poetry run pytest -v
+	@echo "Verbose tests completed."
 
 lint:
 	@echo "Running linter..."

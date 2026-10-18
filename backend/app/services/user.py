@@ -1,9 +1,15 @@
 """Regras de negocio do recurso de usuarios.
 
-O armazenamento e em memoria: a persistencia em PostgreSQL entra na proxima
-pratica. Manter a logica aqui deixa as rotas responsaveis apenas por traduzir
-HTTP, e permite testar as regras sem subir a aplicacao.
+O servico nao conhece SQLAlchemy: ele pede os dados ao repositorio e cuida
+apenas das regras (o usuario existe? o email ja esta em uso?). Trocar o
+repositorio por outra forma de armazenamento nao muda nada aqui.
 """
+
+from sqlalchemy.orm import Session
+
+from app.models.user import User
+from app.repositories import user as repositorio
+from app.schemas.user import UserCreate, UserPatch, UserReplace
 
 
 class UsuarioNaoEncontrado(Exception):
@@ -14,75 +20,55 @@ class EmailJaCadastrado(Exception):
     """Levantada quando outro usuario ja usa o email informado."""
 
 
-_usuarios = {}
-_proximo_id = 1
-
-
-def resetar():
-    """Limpa o armazenamento. Usado pelas fixtures dos testes."""
-    global _proximo_id
-
-    _usuarios.clear()
-    _proximo_id = 1
-
-
-def listar(nome=None, limite=10):
+def listar(db: Session, nome: str | None = None, limite: int = 10) -> list[User]:
     """Lista usuarios, opcionalmente filtrando por um trecho do nome."""
-    encontrados = list(_usuarios.values())
-    if nome:
-        termo = nome.lower()
-        encontrados = [u for u in encontrados if termo in u["nome"].lower()]
-    return encontrados[:limite]
+    return repositorio.listar(db, nome=nome, limite=limite)
 
 
-def buscar(user_id):
+def buscar(db: Session, user_id: int) -> User:
     """Retorna um usuario pelo id."""
-    if user_id not in _usuarios:
+    usuario = repositorio.buscar_por_id(db, user_id)
+    if usuario is None:
         raise UsuarioNaoEncontrado(f"usuario {user_id} nao encontrado")
-    return _usuarios[user_id]
-
-
-def criar(dados):
-    """Cria um usuario e devolve o registro criado."""
-    global _proximo_id
-
-    _garantir_email_livre(dados.email)
-    usuario = {"id": _proximo_id, "nome": dados.nome, "email": dados.email}
-    _usuarios[_proximo_id] = usuario
-    _proximo_id += 1
     return usuario
 
 
-def substituir(user_id, dados):
+def criar(db: Session, dados: UserCreate) -> User:
+    """Cria um usuario e devolve o registro gravado."""
+    _garantir_email_livre(db, dados.email)
+    return repositorio.criar(db, nome=dados.nome, email=dados.email)
+
+
+def substituir(db: Session, user_id: int, dados: UserReplace) -> User:
     """Troca todos os campos do usuario (PUT)."""
-    buscar(user_id)
-    _garantir_email_livre(dados.email, ignorar=user_id)
-    usuario = {"id": user_id, "nome": dados.nome, "email": dados.email}
-    _usuarios[user_id] = usuario
-    return usuario
+    usuario = buscar(db, user_id)
+    _garantir_email_livre(db, dados.email, ignorar=user_id)
+    campos = {"nome": dados.nome, "email": dados.email}
+    return repositorio.atualizar(db, usuario, campos)
 
 
-def atualizar_parcial(user_id, dados):
+def atualizar_parcial(db: Session, user_id: int, dados: UserPatch) -> User:
     """Atualiza somente os campos enviados na requisicao (PATCH)."""
-    usuario = buscar(user_id)
+    usuario = buscar(db, user_id)
     enviados = dados.model_dump(exclude_unset=True)
     alteracoes = {
         campo: valor for campo, valor in enviados.items() if valor is not None
     }
+    if not alteracoes:
+        return usuario
     if "email" in alteracoes:
-        _garantir_email_livre(alteracoes["email"], ignorar=user_id)
-    usuario.update(alteracoes)
-    return usuario
+        _garantir_email_livre(db, alteracoes["email"], ignorar=user_id)
+    return repositorio.atualizar(db, usuario, alteracoes)
 
 
-def remover(user_id):
+def remover(db: Session, user_id: int) -> None:
     """Remove um usuario pelo id."""
-    buscar(user_id)
-    del _usuarios[user_id]
+    usuario = buscar(db, user_id)
+    repositorio.remover(db, usuario)
 
 
-def _garantir_email_livre(email, ignorar=None):
+def _garantir_email_livre(db: Session, email: str, ignorar: int | None = None) -> None:
     """Impede que dois usuarios compartilhem o mesmo email."""
-    for usuario in _usuarios.values():
-        if usuario["email"] == email and usuario["id"] != ignorar:
-            raise EmailJaCadastrado(f"email ja cadastrado: {email}")
+    existente = repositorio.buscar_por_email(db, email)
+    if existente is not None and existente.id != ignorar:
+        raise EmailJaCadastrado(f"email ja cadastrado: {email}")

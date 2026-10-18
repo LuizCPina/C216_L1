@@ -1,4 +1,4 @@
-.PHONY: install test test-verbose test-unit test-integration lint format run build up down compose-build logs ps help
+.PHONY: install test test-verbose test-unit test-integration migrate migration migrate-down lint format run build up down compose-build logs ps help
 
 BACKEND := backend
 IMAGE := c216-backend
@@ -10,6 +10,9 @@ help:
 	@echo "  make test-verbose - Run the test suite in verbose mode"
 	@echo "  make test-unit - Run only the unit tests"
 	@echo "  make test-integration - Run only the integration tests"
+	@echo "  make migrate   - Apply all pending database migrations"
+	@echo "  make migration m=\"message\" - Create a new migration"
+	@echo "  make migrate-down - Revert the last migration"
 	@echo "  make lint      - Run the linter to check code quality"
 	@echo "  make format    - Format the code according to style guidelines"
 	@echo "  make run       - Run the project using Uvicorn"
@@ -44,6 +47,21 @@ test-integration:
 	@echo "Running integration tests..."
 	@cd $(BACKEND) && poetry run pytest tests/integration
 	@echo "Integration tests completed."
+
+migrate:
+	@echo "Applying migrations..."
+	@cd $(BACKEND) && poetry run alembic upgrade head
+	@echo "Migrations applied."
+
+migration:
+	@echo "Creating a new migration..."
+	@cd $(BACKEND) && poetry run alembic revision --autogenerate -m "$(m)"
+	@echo "Migration created."
+
+migrate-down:
+	@echo "Reverting the last migration..."
+	@cd $(BACKEND) && poetry run alembic downgrade -1
+	@echo "Migration reverted."
 
 lint:
 	@echo "Running linter..."

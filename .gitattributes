@@ -1,0 +1,13 @@
+# Pontas de linha.
+#
+# Com core.autocrlf=true (o padrao de muitas instalacoes no Windows) o git
+# grava LF no repositorio mas devolve CRLF no disco ao extrair. O Biome exige
+# LF, entao um clone no Windows faria `npm run check` falhar localmente
+# enquanto o CI, que roda no Linux, continuaria verde. As regras abaixo fixam
+# LF nos dois lados e tiram a plataforma da equacao.
+#
+# O Makefile entra na lista porque o make trata o CR final como parte do
+# comando: um Makefile com CRLF quebra dentro de um container Linux.
+
+frontend/** text=auto eol=lf
+Makefile    text      eol=lf

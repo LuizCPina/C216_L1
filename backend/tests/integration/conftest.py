@@ -3,14 +3,22 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from app.db.session import get_db
 from app.main import app
 
 
 @pytest.fixture
-def client():
-    """Cliente HTTP que executa a aplicacao real, sem subir um servidor."""
+def client(db):
+    """Cliente HTTP da aplicacao real, com o banco de teste no lugar do Postgres.
+
+    dependency_overrides troca a dependencia get_db por uma que devolve a
+    sessao de teste. A aplicacao em si nao muda: continua recebendo a sessao
+    por injecao, sem saber qual banco esta do outro lado.
+    """
+    app.dependency_overrides[get_db] = lambda: db
     with TestClient(app) as cliente:
         yield cliente
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture

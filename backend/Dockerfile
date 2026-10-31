@@ -9,5 +9,7 @@ RUN pip install --no-cache-dir poetry \
     && poetry install --no-root --no-interaction --no-ansi
 
 COPY app ./app
+COPY alembic ./alembic
+COPY alembic.ini ./
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,6 +1,6 @@
 """Modelos Pydantic do recurso de usuarios."""
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.validacoes import normalizar_email
 
@@ -41,6 +41,13 @@ class UserPatch(BaseModel):
 
 
 class UserOut(UserBase):
-    """Usuario como ele sai da API."""
+    """Usuario como ele sai da API.
+
+    from_attributes permite montar a resposta direto do modelo ORM, sem passar
+    por dicionario: e o ponto em que os schemas Pydantic e os modelos
+    SQLAlchemy se encontram, mantendo os dois separados.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
 
     id: int

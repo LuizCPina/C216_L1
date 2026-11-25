@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Arquivos .md locais (nao versionar), exceto READMEs
+*.md
+!README.md

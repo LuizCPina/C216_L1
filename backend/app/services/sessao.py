@@ -5,6 +5,7 @@ repositorio e cuida apenas das regras.
 """
 
 from app.models.sessao import Playlist, Sessao, StatusSessao, agora
+from app.repositories import partida as repositorio_partida
 from app.repositories import sessao as repositorio
 from app.schemas.sessao import SessaoCreate, SessaoPatch
 
@@ -71,6 +72,7 @@ def encerrar(sessao_id: int) -> Sessao:
 
 
 def remover(sessao_id: int) -> None:
-    """Apaga a sessao."""
+    """Apaga a sessao junto com as partidas dela."""
     sessao = buscar(sessao_id)
+    repositorio_partida.remover_por_sessao(sessao.id)
     repositorio.remover(sessao)

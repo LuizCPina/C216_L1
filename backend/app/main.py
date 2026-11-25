@@ -1,5 +1,4 @@
-"""Ponto de entrada da API.
-"""
+"""Ponto de entrada da API."""
 
 from fastapi import FastAPI
 

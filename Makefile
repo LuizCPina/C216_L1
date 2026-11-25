@@ -1,4 +1,4 @@
-.PHONY: help install run lint format
+.PHONY: help install run lint format up down logs ps
 
 BACKEND := backend
 
@@ -8,6 +8,10 @@ help:
 	@echo   make run     - Run the API with Uvicorn
 	@echo   make lint    - Check the code with Ruff
 	@echo   make format  - Format the code with Ruff
+	@echo   make up      - Build and start the containers
+	@echo   make down    - Stop and remove the containers
+	@echo   make logs    - Follow the container logs
+	@echo   make ps      - List the containers
 
 install:
 	@echo Installing the backend...
@@ -27,3 +31,19 @@ format:
 	@echo Formatting code...
 	@cd $(BACKEND) && poetry run ruff format .
 	@echo Formatting completed.
+
+up:
+	@echo Starting the containers...
+	@docker compose up -d --build
+	@echo Containers started.
+
+down:
+	@echo Stopping the containers...
+	@docker compose down
+	@echo Containers stopped.
+
+logs:
+	@docker compose logs -f
+
+ps:
+	@docker compose ps

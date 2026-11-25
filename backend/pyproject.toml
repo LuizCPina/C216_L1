@@ -18,5 +18,11 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
-    "ruff (>=0.17.6,<0.18.0)"
+    "ruff (>=0.17.6,<0.18.0)",
+    "pytest (>=9.2.0,<10.0.0)",
+    "httpx2 (>=2.16.2,<3.0.0)",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

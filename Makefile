@@ -1,11 +1,12 @@
-.PHONY: help install run lint format up down logs ps
+.PHONY: help install test run lint format up down logs ps
 
 BACKEND := backend
 
 help:
 	@echo Available commands:
 	@echo   make install - Install the backend dependencies
-	@echo   make run     - Run the API with Uvicorn
+	@echo   make test    - Run the backend tests
+	@echo   make run    - Run the API with Uvicorn
 	@echo   make lint    - Check the code with Ruff
 	@echo   make format  - Format the code with Ruff
 	@echo   make up      - Build and start the containers
@@ -17,6 +18,11 @@ install:
 	@echo Installing the backend...
 	@cd $(BACKEND) && poetry install --no-root
 	@echo Installation complete.
+
+test:
+	@echo Running tests...
+	@cd $(BACKEND) && poetry run pytest -v
+	@echo Tests completed.
 
 run:
 	@echo Running the API...

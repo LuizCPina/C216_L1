@@ -2,18 +2,41 @@ name: diario-ranked
 
 services:
 
+  web:
+    build:
+      context: ./frontend
+      args:
+        # Endereco da API visto pelo navegador. Entra no build do frontend.
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    ports:
+      - "5173:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
   api:
     build: ./backend
     ports:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
+      # Enderecos do frontend que podem chamar a API pelo navegador.
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
     depends_on:
       db:
         condition: service_healthy
     # Aplica as migracoes antes de servir. Se o banco ja estiver na ultima
-    # versao, o Alembic nao faz nada e a API sobe direto.
-    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    # versao, o Alembic nao faz nada e a API sobe direto. O exec troca o sh
+    # pelo uvicorn: assim ele recebe o sinal de parada do Docker e desliga na
+    # hora, em vez de ser derrubado a forca depois de 10 segundos.
+    command: sh -c "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    # Saudavel quando a rota GET / responde. A imagem nao tem curl, mas tem Python.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   db:
     image: postgres:16

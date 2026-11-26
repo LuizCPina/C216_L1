@@ -1,4 +1,6 @@
-/** Raiz da aplicacao: o cabecalho fixo e, abaixo dele, o conteudo. */
+import SessaoAtualPage from "./pages/SessaoAtualPage.jsx";
+
+/** Raiz da aplicacao: o cabecalho fixo e, abaixo dele, a pagina. */
 export default function App() {
   return (
     <div className="min-h-screen bg-slate-100">
@@ -11,7 +13,9 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-8" />
+      <main className="mx-auto max-w-4xl px-4 py-8">
+        <SessaoAtualPage />
+      </main>
     </div>
   );
 }

@@ -1,4 +1,5 @@
-.PHONY: help install test test-unit test-integration migrate migration migrate-down run lint format up down logs ps \n	front-install front-dev front-build front-test front-check front-format
+.PHONY: help install test test-unit test-integration migrate migration migrate-down run lint format up down logs ps \
+	front-install front-dev front-build front-test front-check front-format
 
 BACKEND := backend
 FRONTEND := frontend
@@ -15,7 +16,7 @@ help:
 	@echo   make run    - Run the API with Uvicorn
 	@echo   make lint    - Check the code with Ruff
 	@echo   make format  - Format the code with Ruff
-	@echo   make up      - Build and start the containers
+	@echo   make up      - Build and start web, api and db, waiting until they are ready
 	@echo   make down    - Stop and remove the containers
 	@echo   make logs    - Follow the container logs
 	@echo   make ps      - List the containers
@@ -78,8 +79,8 @@ format:
 
 up:
 	@echo Starting the containers...
-	@docker compose up -d --build
-	@echo Containers started.
+	@docker compose up -d --build --wait
+	@echo Containers ready. Open http://localhost:5173
 
 down:
 	@echo Stopping the containers...

@@ -4,6 +4,8 @@ Nada aqui e gravado: os numeros saem das partidas toda vez que alguem pede.
 Assim, editar ou apagar uma partida nunca deixa as estatisticas erradas.
 """
 
+from sqlalchemy.orm import Session
+
 from app.models.partida import Partida, Resultado
 from app.models.sessao import Playlist
 from app.schemas.estatisticas import (
@@ -17,10 +19,10 @@ from app.services import partida as servico_partida
 from app.services import sessao as servico_sessao
 
 
-def da_sessao(sessao_id: int) -> EstatisticasSessaoOut:
+def da_sessao(db: Session, sessao_id: int) -> EstatisticasSessaoOut:
     """Estatisticas de uma sessao, incluindo a evolucao do MMR."""
-    sessao = servico_sessao.buscar(sessao_id)
-    partidas = servico_partida.listar_da_sessao(sessao_id)
+    sessao = servico_sessao.buscar(db, sessao_id)
+    partidas = servico_partida.listar_da_sessao(db, sessao_id)
     mmr_atual = partidas[-1].mmr_depois if partidas else sessao.mmr_inicial
 
     return EstatisticasSessaoOut(
@@ -33,13 +35,13 @@ def da_sessao(sessao_id: int) -> EstatisticasSessaoOut:
     )
 
 
-def gerais(playlist: Playlist | None = None) -> EstatisticasGeraisOut:
+def gerais(db: Session, playlist: Playlist | None = None) -> EstatisticasGeraisOut:
     """Estatisticas de todas as sessoes, da mais antiga para a mais nova."""
-    sessoes = sorted(servico_sessao.listar(playlist=playlist), key=lambda s: s.id)
+    sessoes = sorted(servico_sessao.listar(db, playlist=playlist), key=lambda s: s.id)
     partidas = []
     variacao_mmr = 0
     for sessao in sessoes:
-        da_sessao_atual = servico_partida.listar_da_sessao(sessao.id)
+        da_sessao_atual = servico_partida.listar_da_sessao(db, sessao.id)
         partidas.extend(da_sessao_atual)
         if da_sessao_atual:
             variacao_mmr += da_sessao_atual[-1].mmr_depois - sessao.mmr_inicial

@@ -4,6 +4,8 @@ Toda partida pertence a uma sessao, entao varias regras dependem dela: a
 sessao precisa existir, estar aberta e combinar com os dados da partida.
 """
 
+from sqlalchemy.orm import Session
+
 from app.models.partida import Partida
 from app.models.sessao import Playlist, Sessao, StatusSessao
 from app.repositories import partida as repositorio
@@ -23,43 +25,43 @@ class PartidaInvalida(Exception):
     """Levantada quando os dados da partida sao impossiveis no jogo."""
 
 
-def listar_da_sessao(sessao_id: int) -> list[Partida]:
+def listar_da_sessao(db: Session, sessao_id: int) -> list[Partida]:
     """Partidas de uma sessao, na ordem em que foram jogadas."""
-    servico_sessao.buscar(sessao_id)
-    return repositorio.listar_por_sessao(sessao_id)
+    servico_sessao.buscar(db, sessao_id)
+    return repositorio.listar_por_sessao(db, sessao_id)
 
 
-def buscar(partida_id: int) -> Partida:
+def buscar(db: Session, partida_id: int) -> Partida:
     """Retorna uma partida pelo id."""
-    partida = repositorio.buscar_por_id(partida_id)
+    partida = repositorio.buscar_por_id(db, partida_id)
     if partida is None:
         raise PartidaNaoEncontrada(f"Partida {partida_id} não encontrada.")
     return partida
 
 
-def registrar(sessao_id: int, dados: PartidaCreate) -> Partida:
+def registrar(db: Session, sessao_id: int, dados: PartidaCreate) -> Partida:
     """Registra uma partida na sessao, que precisa estar aberta."""
-    sessao = servico_sessao.buscar(sessao_id)
+    sessao = servico_sessao.buscar(db, sessao_id)
     _garantir_sessao_aberta(sessao)
     _validar_partida(sessao, dados)
-    return repositorio.criar(sessao_id, dados.model_dump())
+    return repositorio.criar(db, sessao_id, dados.model_dump())
 
 
-def substituir(partida_id: int, dados: PartidaReplace) -> Partida:
+def substituir(db: Session, partida_id: int, dados: PartidaReplace) -> Partida:
     """Troca todos os campos da partida, com as mesmas regras do registro."""
-    partida = buscar(partida_id)
-    sessao = servico_sessao.buscar(partida.sessao_id)
+    partida = buscar(db, partida_id)
+    sessao = servico_sessao.buscar(db, partida.sessao_id)
     _garantir_sessao_aberta(sessao)
     _validar_partida(sessao, dados)
-    return repositorio.atualizar(partida, dados.model_dump())
+    return repositorio.atualizar(db, partida, dados.model_dump())
 
 
-def remover(partida_id: int) -> None:
+def remover(db: Session, partida_id: int) -> None:
     """Apaga a partida, desde que a sessao dela ainda esteja aberta."""
-    partida = buscar(partida_id)
-    sessao = servico_sessao.buscar(partida.sessao_id)
+    partida = buscar(db, partida_id)
+    sessao = servico_sessao.buscar(db, partida.sessao_id)
     _garantir_sessao_aberta(sessao)
-    repositorio.remover(partida)
+    repositorio.remover(db, partida)
 
 
 def _garantir_sessao_aberta(sessao: Sessao) -> None:

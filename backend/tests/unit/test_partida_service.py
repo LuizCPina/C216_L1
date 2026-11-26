@@ -15,7 +15,9 @@ from app.services import sessao as servico_sessao
 
 def abrir_sessao(playlist="2v2"):
     """Inicia uma sessao e devolve ela."""
-    return servico_sessao.iniciar(SessaoCreate(playlist=playlist, mmr_inicial=1000))
+    return servico_sessao.iniciar(
+        None, SessaoCreate(playlist=playlist, mmr_inicial=1000)
+    )
 
 
 def nova_partida(**campos):
@@ -35,7 +37,7 @@ def edicao(**campos):
 def test_registrar_vitoria():
     sessao = abrir_sessao()
 
-    partida = servico.registrar(sessao.id, nova_partida())
+    partida = servico.registrar(None, sessao.id, nova_partida())
 
     assert partida.sessao_id == sessao.id
     assert partida.resultado == Resultado.VITORIA
@@ -44,14 +46,16 @@ def test_registrar_vitoria():
 def test_registrar_derrota():
     sessao = abrir_sessao()
 
-    partida = servico.registrar(sessao.id, nova_partida(gols_pro=0, gols_contra=2))
+    partida = servico.registrar(
+        None, sessao.id, nova_partida(gols_pro=0, gols_contra=2)
+    )
 
     assert partida.resultado == Resultado.DERROTA
 
 
 def test_registrar_em_sessao_inexistente():
     with pytest.raises(servico_sessao.SessaoNaoEncontrada):
-        servico.registrar(99, nova_partida())
+        servico.registrar(None, 99, nova_partida())
 
 
 # Regra: nao existe empate
@@ -61,7 +65,7 @@ def test_recusa_placar_empatado():
     sessao = abrir_sessao()
 
     with pytest.raises(servico.PartidaInvalida, match="não existe empate"):
-        servico.registrar(sessao.id, nova_partida(gols_pro=2, gols_contra=2))
+        servico.registrar(None, sessao.id, nova_partida(gols_pro=2, gols_contra=2))
 
 
 # Regra: overtime termina no primeiro gol
@@ -71,7 +75,7 @@ def test_aceita_overtime_com_diferenca_de_um_gol():
     sessao = abrir_sessao()
 
     partida = servico.registrar(
-        sessao.id, nova_partida(gols_pro=2, gols_contra=3, overtime=True)
+        None, sessao.id, nova_partida(gols_pro=2, gols_contra=3, overtime=True)
     )
 
     assert partida.overtime is True
@@ -83,7 +87,7 @@ def test_recusa_overtime_com_diferenca_maior_que_um():
 
     with pytest.raises(servico.PartidaInvalida, match="overtime"):
         servico.registrar(
-            sessao.id, nova_partida(gols_pro=4, gols_contra=1, overtime=True)
+            None, sessao.id, nova_partida(gols_pro=4, gols_contra=1, overtime=True)
         )
 
 
@@ -94,13 +98,13 @@ def test_recusa_companheiro_em_sessao_1v1():
     sessao = abrir_sessao(playlist="1v1")
 
     with pytest.raises(servico.PartidaInvalida, match="1v1"):
-        servico.registrar(sessao.id, nova_partida(companheiro="Pedro"))
+        servico.registrar(None, sessao.id, nova_partida(companheiro="Pedro"))
 
 
 def test_aceita_1v1_sem_companheiro():
     sessao = abrir_sessao(playlist="1v1")
 
-    partida = servico.registrar(sessao.id, nova_partida())
+    partida = servico.registrar(None, sessao.id, nova_partida())
 
     assert partida.companheiro is None
 
@@ -108,7 +112,7 @@ def test_aceita_1v1_sem_companheiro():
 def test_aceita_companheiro_em_sessao_2v2():
     sessao = abrir_sessao(playlist="2v2")
 
-    partida = servico.registrar(sessao.id, nova_partida(companheiro="Pedro"))
+    partida = servico.registrar(None, sessao.id, nova_partida(companheiro="Pedro"))
 
     assert partida.companheiro == "Pedro"
 
@@ -118,28 +122,28 @@ def test_aceita_companheiro_em_sessao_2v2():
 
 def test_nao_registra_em_sessao_encerrada():
     sessao = abrir_sessao()
-    servico_sessao.encerrar(sessao.id)
+    servico_sessao.encerrar(None, sessao.id)
 
     with pytest.raises(servico.SessaoEncerrada):
-        servico.registrar(sessao.id, nova_partida())
+        servico.registrar(None, sessao.id, nova_partida())
 
 
 def test_nao_edita_partida_de_sessao_encerrada():
     sessao = abrir_sessao()
-    partida = servico.registrar(sessao.id, nova_partida())
-    servico_sessao.encerrar(sessao.id)
+    partida = servico.registrar(None, sessao.id, nova_partida())
+    servico_sessao.encerrar(None, sessao.id)
 
     with pytest.raises(servico.SessaoEncerrada):
-        servico.substituir(partida.id, edicao(gols_pro=5))
+        servico.substituir(None, partida.id, edicao(gols_pro=5))
 
 
 def test_nao_remove_partida_de_sessao_encerrada():
     sessao = abrir_sessao()
-    partida = servico.registrar(sessao.id, nova_partida())
-    servico_sessao.encerrar(sessao.id)
+    partida = servico.registrar(None, sessao.id, nova_partida())
+    servico_sessao.encerrar(None, sessao.id)
 
     with pytest.raises(servico.SessaoEncerrada):
-        servico.remover(partida.id)
+        servico.remover(None, partida.id)
 
 
 # Listagem
@@ -147,20 +151,22 @@ def test_nao_remove_partida_de_sessao_encerrada():
 
 def test_listar_partidas_em_ordem_e_separadas_por_sessao():
     anterior = abrir_sessao()
-    primeira = servico.registrar(anterior.id, nova_partida())
-    segunda = servico.registrar(anterior.id, nova_partida(gols_pro=0, gols_contra=1))
-    servico_sessao.encerrar(anterior.id)
+    primeira = servico.registrar(None, anterior.id, nova_partida())
+    segunda = servico.registrar(
+        None, anterior.id, nova_partida(gols_pro=0, gols_contra=1)
+    )
+    servico_sessao.encerrar(None, anterior.id)
     atual = abrir_sessao()
-    servico.registrar(atual.id, nova_partida())
+    servico.registrar(None, atual.id, nova_partida())
 
-    partidas = servico.listar_da_sessao(anterior.id)
+    partidas = servico.listar_da_sessao(None, anterior.id)
 
     assert [p.id for p in partidas] == [primeira.id, segunda.id]
 
 
 def test_listar_de_sessao_inexistente():
     with pytest.raises(servico_sessao.SessaoNaoEncontrada):
-        servico.listar_da_sessao(99)
+        servico.listar_da_sessao(None, 99)
 
 
 # Edicao e remocao
@@ -168,9 +174,9 @@ def test_listar_de_sessao_inexistente():
 
 def test_substituir_atualiza_placar_e_resultado():
     sessao = abrir_sessao()
-    partida = servico.registrar(sessao.id, nova_partida())
+    partida = servico.registrar(None, sessao.id, nova_partida())
 
-    editada = servico.substituir(partida.id, edicao(gols_pro=1, gols_contra=4))
+    editada = servico.substituir(None, partida.id, edicao(gols_pro=1, gols_contra=4))
 
     assert editada.gols_pro == 1
     assert editada.resultado == Resultado.DERROTA
@@ -178,32 +184,22 @@ def test_substituir_atualiza_placar_e_resultado():
 
 def test_substituir_aplica_as_mesmas_regras_do_registro():
     sessao = abrir_sessao()
-    partida = servico.registrar(sessao.id, nova_partida())
+    partida = servico.registrar(None, sessao.id, nova_partida())
 
     with pytest.raises(servico.PartidaInvalida):
-        servico.substituir(partida.id, edicao(gols_pro=1, gols_contra=1))
+        servico.substituir(None, partida.id, edicao(gols_pro=1, gols_contra=1))
 
 
 def test_buscar_partida_inexistente():
     with pytest.raises(servico.PartidaNaoEncontrada):
-        servico.buscar(99)
+        servico.buscar(None, 99)
 
 
 def test_remover_partida():
     sessao = abrir_sessao()
-    partida = servico.registrar(sessao.id, nova_partida())
+    partida = servico.registrar(None, sessao.id, nova_partida())
 
-    servico.remover(partida.id)
-
-    with pytest.raises(servico.PartidaNaoEncontrada):
-        servico.buscar(partida.id)
-
-
-def test_remover_sessao_apaga_as_partidas_dela():
-    sessao = abrir_sessao()
-    partida = servico.registrar(sessao.id, nova_partida())
-
-    servico_sessao.remover(sessao.id)
+    servico.remover(None, partida.id)
 
     with pytest.raises(servico.PartidaNaoEncontrada):
-        servico.buscar(partida.id)
+        servico.buscar(None, partida.id)

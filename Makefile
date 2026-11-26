@@ -1,4 +1,4 @@
-.PHONY: help install test test-unit test-integration run lint format up down logs ps
+.PHONY: help install test test-unit test-integration migrate migration migrate-down run lint format up down logs ps
 
 BACKEND := backend
 
@@ -8,6 +8,9 @@ help:
 	@echo   make test    - Run the backend tests
 	@echo   make test-unit - Run only the unit tests
 	@echo   make test-integration - Run only the integration tests
+	@echo   make migrate - Apply the pending database migrations
+	@echo   make migration m=message - Create a migration from the models
+	@echo   make migrate-down - Revert the last migration
 	@echo   make run    - Run the API with Uvicorn
 	@echo   make lint    - Check the code with Ruff
 	@echo   make format  - Format the code with Ruff
@@ -35,6 +38,21 @@ test-integration:
 	@echo Running integration tests...
 	@cd $(BACKEND) && poetry run pytest -v tests/integration
 	@echo Integration tests completed.
+
+migrate:
+	@echo Applying migrations...
+	@cd $(BACKEND) && poetry run alembic upgrade head
+	@echo Migrations applied.
+
+migration:
+	@echo Creating a new migration...
+	@cd $(BACKEND) && poetry run alembic revision --autogenerate -m "$(m)"
+	@echo Migration created. Review the generated file before committing.
+
+migrate-down:
+	@echo Reverting the last migration...
+	@cd $(BACKEND) && poetry run alembic downgrade -1
+	@echo Migration reverted.
 
 run:
 	@echo Running the API...

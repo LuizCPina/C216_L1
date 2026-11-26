@@ -58,6 +58,6 @@ describe("IniciarSessaoForm", () => {
   it("trava o botão enquanto a página está ocupada", () => {
     render(<IniciarSessaoForm onIniciar={vi.fn()} ocupado />);
 
-    expect(screen.getByRole("button", { name: "Iniciando..." })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Iniciar sessão" })).toBeDisabled();
   });
 });

@@ -39,4 +39,10 @@ describe("SessaoCard", () => {
 
     expect(onEncerrar).toHaveBeenCalledTimes(1);
   });
+
+  it("trava o botão enquanto a página está ocupada", () => {
+    render(<SessaoCard sessao={SESSAO} onEncerrar={vi.fn()} ocupado />);
+
+    expect(screen.getByRole("button", { name: "Encerrar sessão" })).toBeDisabled();
+  });
 });

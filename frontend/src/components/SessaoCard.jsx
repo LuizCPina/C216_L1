@@ -4,7 +4,8 @@ import { formatarDataHora } from "../formatacao.js";
  * Resumo da sessao aberta, com o botao de encerrar.
  *
  * Componente de apresentacao: recebe a sessao por props e devolve o clique
- * em `onEncerrar`. Nao guarda estado.
+ * em `onEncerrar`. Nao guarda estado. Enquanto a pagina esta `ocupado`, o
+ * botao fica travado.
  */
 export default function SessaoCard({ sessao, onEncerrar, ocupado = false }) {
   return (
@@ -45,7 +46,7 @@ export default function SessaoCard({ sessao, onEncerrar, ocupado = false }) {
         disabled={ocupado}
         className="rounded-md bg-slate-800 px-4 py-2 font-medium text-white transition hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-60"
       >
-        {ocupado ? "Encerrando..." : "Encerrar sessão"}
+        Encerrar sessão
       </button>
     </section>
   );

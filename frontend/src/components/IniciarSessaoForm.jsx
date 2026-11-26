@@ -103,7 +103,7 @@ export default function IniciarSessaoForm({ onIniciar, ocupado = false }) {
         disabled={ocupado}
         className="rounded-md bg-sky-600 px-4 py-2 font-medium text-white transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 disabled:opacity-60"
       >
-        {ocupado ? "Iniciando..." : "Iniciar sessão"}
+        Iniciar sessão
       </button>
     </form>
   );

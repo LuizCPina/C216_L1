@@ -11,6 +11,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # Aplica as migracoes antes de servir. Se o banco ja estiver na ultima
+    # versao, o Alembic nao faz nada e a API sobe direto.
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
   db:
     image: postgres:16

@@ -1,0 +1,58 @@
+name: CI Frontend
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  # Primeiro job: qualidade do código. É rápido e barra o resto se falhar.
+  lint:
+    name: Lint e formatação
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "26"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # biome check = lint + formatação + ordem dos imports, de uma vez.
+      - name: Biome check
+        run: npm run check
+
+  # Segundo job: só roda se o lint passar.
+  test:
+    name: Testes
+    needs: lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "26"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test

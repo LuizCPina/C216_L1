@@ -25,6 +25,18 @@ describe("SessaoCard", () => {
     expect(screen.getByText("Duo com o Pedro")).toBeInTheDocument();
   });
 
+  it("mostra o MMR atual quando ele já chegou da API", () => {
+    render(<SessaoCard sessao={SESSAO} mmrAtual={1012} onEncerrar={vi.fn()} />);
+
+    expect(screen.getByText("MMR atual").parentElement).toHaveTextContent("1012");
+  });
+
+  it("esconde o MMR atual enquanto ele não chegou", () => {
+    render(<SessaoCard sessao={SESSAO} onEncerrar={vi.fn()} />);
+
+    expect(screen.queryByText("MMR atual")).not.toBeInTheDocument();
+  });
+
   it("esconde as observações quando não há nenhuma", () => {
     render(<SessaoCard sessao={{ ...SESSAO, observacoes: null }} onEncerrar={vi.fn()} />);
 

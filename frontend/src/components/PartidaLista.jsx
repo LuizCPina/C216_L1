@@ -1,3 +1,5 @@
+import { corDoSinal, formatarVariacao } from "../formatacao.js";
+
 const CLASSE_BOTAO =
   "rounded-md bg-white px-3 py-1.5 text-sm font-medium ring-1 transition focus:outline-none focus:ring-2 disabled:opacity-60";
 
@@ -7,9 +9,13 @@ const CLASSE_BOTAO =
  * Componente de apresentacao: os cliques saem por `onEditar` e `onExcluir`.
  * Na linha da partida que esta sendo editada (`editandoId`), mostra o
  * `formularioDeEdicao` que a pagina mandou no lugar dos dados.
+ *
+ * `variacoes` diz quanto o MMR mudou em cada partida ({ id da partida: variacao }).
+ * Quem calcula e a API; uma partida que ainda nao esta ali so fica sem o numero.
  */
 export default function PartidaLista({
   partidas,
+  variacoes = {},
   editandoId,
   formularioDeEdicao,
   onEditar,
@@ -57,7 +63,14 @@ export default function PartidaLista({
                     <span className="ml-1 text-xs font-normal text-slate-500">overtime</span>
                   )}
                 </span>
-                <span className="text-sm text-slate-600">MMR {partida.mmr_depois}</span>
+                <span className="text-sm text-slate-600">
+                  MMR {partida.mmr_depois}
+                  {partida.id in variacoes && (
+                    <span className={`ml-1 font-medium ${corDoSinal(variacoes[partida.id])}`}>
+                      ({formatarVariacao(variacoes[partida.id])})
+                    </span>
+                  )}
+                </span>
 
                 <div className="min-w-0 flex-1 text-sm text-slate-500">
                   {partida.companheiro && <p>Com {partida.companheiro}</p>}

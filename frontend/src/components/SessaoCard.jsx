@@ -5,9 +5,10 @@ import { formatarDataHora } from "../formatacao.js";
  *
  * Componente de apresentacao: recebe a sessao por props e devolve o clique
  * em `onEncerrar`. Nao guarda estado. Enquanto a pagina esta `ocupado`, o
- * botao fica travado.
+ * botao fica travado. O `mmrAtual` vem das estatisticas e so aparece quando
+ * ja chegou da API.
  */
-export default function SessaoCard({ sessao, onEncerrar, ocupado = false }) {
+export default function SessaoCard({ sessao, mmrAtual, onEncerrar, ocupado = false }) {
   return (
     <section
       aria-labelledby="titulo-sessao-atual"
@@ -32,8 +33,14 @@ export default function SessaoCard({ sessao, onEncerrar, ocupado = false }) {
           <dt className="text-sm text-slate-500">MMR inicial</dt>
           <dd className="text-xl font-semibold text-slate-900">{sessao.mmr_inicial}</dd>
         </div>
-        {sessao.observacoes && (
+        {mmrAtual !== undefined && (
           <div>
+            <dt className="text-sm text-slate-500">MMR atual</dt>
+            <dd className="text-xl font-semibold text-slate-900">{mmrAtual}</dd>
+          </div>
+        )}
+        {sessao.observacoes && (
+          <div className="col-span-2">
             <dt className="text-sm text-slate-500">Observações</dt>
             <dd className="text-slate-900">{sessao.observacoes}</dd>
           </div>

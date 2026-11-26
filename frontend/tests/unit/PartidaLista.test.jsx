@@ -61,6 +61,21 @@ describe("PartidaLista", () => {
     expect(segunda).not.toHaveTextContent("Com");
   });
 
+  it("mostra quanto o MMR mudou em cada partida, com a cor do sinal", () => {
+    renderizar({ variacoes: { 10: 9, 11: -9 } });
+
+    expect(screen.getByText("(+9)")).toHaveClass("text-emerald-700");
+    expect(screen.getByText("(-9)")).toHaveClass("text-red-700");
+  });
+
+  it("deixa sem variação a partida que ainda não está nos números", () => {
+    renderizar({ variacoes: { 10: 9 } });
+
+    const [, segunda] = screen.getAllByRole("listitem");
+    expect(segunda).toHaveTextContent("MMR 1000");
+    expect(segunda).not.toHaveTextContent("(");
+  });
+
   it("devolve a partida clicada em editar e excluir", async () => {
     const usuario = userEvent.setup();
     const onEditar = vi.fn();

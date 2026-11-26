@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   editarPartida,
   encerrarSessao,
+  estatisticasDaSessao,
   iniciarSessao,
   listarPartidas,
   listarSessoes,
@@ -9,6 +10,7 @@ import {
   removerPartida,
 } from "../api.js";
 import Aviso from "../components/Aviso.jsx";
+import EstatisticasCards from "../components/EstatisticasCards.jsx";
 import IniciarSessaoForm from "../components/IniciarSessaoForm.jsx";
 import PartidaForm from "../components/PartidaForm.jsx";
 import PartidaLista from "../components/PartidaLista.jsx";
@@ -24,6 +26,7 @@ import SessaoCard from "../components/SessaoCard.jsx";
 export default function SessaoAtualPage() {
   const [sessao, setSessao] = useState(null);
   const [partidas, setPartidas] = useState([]);
+  const [estatisticas, setEstatisticas] = useState(null);
   const [editando, setEditando] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [falhaAoCarregar, setFalhaAoCarregar] = useState(null);
@@ -41,7 +44,15 @@ export default function SessaoAtualPage() {
     try {
       const abertas = await listarSessoes({ status: "aberta" });
       const atual = abertas[0] ?? null;
-      setPartidas(atual ? await listarPartidas(atual.id) : []);
+      if (atual) {
+        // As partidas e os numeros da sessao sao buscados ao mesmo tempo.
+        const [daSessao, numeros] = await Promise.all([
+          listarPartidas(atual.id),
+          estatisticasDaSessao(atual.id),
+        ]);
+        setPartidas(daSessao);
+        setEstatisticas(numeros);
+      }
       setSessao(atual);
     } catch (falha) {
       setFalhaAoCarregar(falha.message);
@@ -75,12 +86,19 @@ export default function SessaoAtualPage() {
     }
   }
 
+  /** Os numeros sao calculados pela API: depois de mexer nas partidas, pede de novo. */
+  async function recalcularEstatisticas(sessaoId) {
+    setEstatisticas(await estatisticasDaSessao(sessaoId));
+  }
+
   function iniciar(dados) {
     return executar(
       async () => {
+        const nova = await iniciarSessao(dados);
         // A sessao nova comeca sem partidas, mesmo que a anterior tivesse.
-        setSessao(await iniciarSessao(dados));
+        setSessao(nova);
         setPartidas([]);
+        await recalcularEstatisticas(nova.id);
       },
       {
         carregando: "Iniciando a sessão...",
@@ -94,6 +112,8 @@ export default function SessaoAtualPage() {
       async () => {
         await encerrarSessao(sessao.id);
         setSessao(null);
+        // Os numeros desta sessao nao podem aparecer na proxima.
+        setEstatisticas(null);
       },
       {
         carregando: "Encerrando a sessão...",
@@ -107,6 +127,7 @@ export default function SessaoAtualPage() {
       async () => {
         const nova = await registrarPartida(sessao.id, dados);
         setPartidas((atuais) => [...atuais, nova]);
+        await recalcularEstatisticas(sessao.id);
       },
       {
         carregando: "Registrando a partida...",
@@ -123,6 +144,7 @@ export default function SessaoAtualPage() {
           atuais.map((partida) => (partida.id === atualizada.id ? atualizada : partida)),
         );
         setEditando(null);
+        await recalcularEstatisticas(sessao.id);
       },
       { carregando: "Salvando a partida...", sucesso: "Partida atualizada." },
     );
@@ -136,6 +158,7 @@ export default function SessaoAtualPage() {
       async () => {
         await removerPartida(partida.id);
         setPartidas((atuais) => atuais.filter((outra) => outra.id !== partida.id));
+        await recalcularEstatisticas(sessao.id);
       },
       { carregando: "Excluindo a partida...", sucesso: `Partida ${numero} excluída.` },
     );
@@ -164,6 +187,11 @@ export default function SessaoAtualPage() {
     );
   }
 
+  // Quanto o MMR mudou em cada partida, que a API manda na evolucao da sessao.
+  const variacoes = Object.fromEntries(
+    (estatisticas?.evolucao ?? []).map((ponto) => [ponto.partida_id, ponto.variacao]),
+  );
+
   return (
     <div className="space-y-4">
       {emAndamento && <Aviso tipo="carregando">{emAndamento}</Aviso>}
@@ -172,10 +200,19 @@ export default function SessaoAtualPage() {
 
       {sessao ? (
         <>
-          <SessaoCard sessao={sessao} onEncerrar={encerrar} ocupado={ocupado} />
+          <SessaoCard
+            sessao={sessao}
+            mmrAtual={estatisticas?.mmr_atual}
+            onEncerrar={encerrar}
+            ocupado={ocupado}
+          />
+          {estatisticas && (
+            <EstatisticasCards titulo="Estatísticas da sessão" estatisticas={estatisticas} />
+          )}
           <PartidaForm playlist={sessao.playlist} onSalvar={registrar} ocupado={ocupado} />
           <PartidaLista
             partidas={partidas}
+            variacoes={variacoes}
             editandoId={editando?.id}
             formularioDeEdicao={
               editando && (

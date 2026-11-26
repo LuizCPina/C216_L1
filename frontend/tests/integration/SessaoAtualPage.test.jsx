@@ -13,6 +13,7 @@ import {
   ErroDaApi,
   editarPartida,
   encerrarSessao,
+  estatisticasDaSessao,
   iniciarSessao,
   listarPartidas,
   listarSessoes,
@@ -30,6 +31,7 @@ vi.mock("../../src/api.js", async (importOriginal) => ({
   registrarPartida: vi.fn(),
   editarPartida: vi.fn(),
   removerPartida: vi.fn(),
+  estatisticasDaSessao: vi.fn(),
 }));
 
 const SESSAO_ABERTA = {
@@ -55,9 +57,40 @@ const PARTIDA = {
   jogada_em: "2026-11-26T12:30:00Z",
 };
 
+const ESTATISTICAS_VAZIAS = {
+  partidas: 0,
+  vitorias: 0,
+  derrotas: 0,
+  taxa_vitoria: 0,
+  gols_pro: 0,
+  gols_contra: 0,
+  saldo_gols: 0,
+  sequencia: null,
+  sessao_id: 1,
+  mmr_inicial: 1000,
+  mmr_atual: 1000,
+  variacao_mmr: 0,
+  evolucao: [],
+};
+
+const ESTATISTICAS_COM_PARTIDA = {
+  ...ESTATISTICAS_VAZIAS,
+  partidas: 1,
+  vitorias: 1,
+  taxa_vitoria: 100,
+  gols_pro: 3,
+  gols_contra: 1,
+  saldo_gols: 2,
+  sequencia: { resultado: "vitoria", quantidade: 1 },
+  mmr_atual: 1009,
+  variacao_mmr: 9,
+  evolucao: [{ partida_id: 10, mmr_depois: 1009, variacao: 9 }],
+};
+
 beforeEach(() => {
   vi.resetAllMocks();
   listarPartidas.mockResolvedValue([]);
+  estatisticasDaSessao.mockResolvedValue(ESTATISTICAS_VAZIAS);
 });
 
 afterEach(() => {
@@ -107,6 +140,7 @@ describe("SessaoAtualPage", () => {
     });
     expect(await screen.findByText(/Sessão 2v2 iniciada/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Sessão atual" })).toBeInTheDocument();
+    expect(screen.getByText("Os números aparecem depois da primeira partida.")).toBeInTheDocument();
   });
 
   it("mostra o erro da API e continua no formulário", async () => {
@@ -182,9 +216,25 @@ describe("SessaoAtualPage com partidas", () => {
     expect(lista.getByRole("listitem")).toHaveTextContent("3 × 1");
   });
 
+  it("mostra as estatísticas, o MMR atual e a variação de cada partida", async () => {
+    listarPartidas.mockResolvedValue([PARTIDA]);
+    estatisticasDaSessao.mockResolvedValue(ESTATISTICAS_COM_PARTIDA);
+    const lista = await abrirPagina();
+
+    expect(estatisticasDaSessao).toHaveBeenCalledWith(1);
+    const numeros = screen.getByRole("region", { name: "Estatísticas da sessão" });
+    expect(numeros).toHaveTextContent("100%");
+    expect(numeros).toHaveTextContent("1 vitória");
+    expect(screen.getByText("MMR atual").parentElement).toHaveTextContent("1009");
+    expect(lista.getByRole("listitem")).toHaveTextContent("(+9)");
+  });
+
   it("registra uma partida, mostra o sucesso e coloca ela na lista", async () => {
     const usuario = userEvent.setup();
     registrarPartida.mockResolvedValue(PARTIDA);
+    estatisticasDaSessao
+      .mockResolvedValueOnce(ESTATISTICAS_VAZIAS)
+      .mockResolvedValueOnce(ESTATISTICAS_COM_PARTIDA);
     const lista = await abrirPagina();
     const formulario = within(screen.getByRole("form", { name: "Registrar partida" }));
 
@@ -202,6 +252,10 @@ describe("SessaoAtualPage com partidas", () => {
     expect(await screen.findByText("Partida registrada: 3 × 1.")).toBeInTheDocument();
     expect(lista.getByRole("listitem")).toHaveTextContent("Vitória");
     expect(formulario.getByLabelText("Seu time")).toHaveValue(null);
+    expect(estatisticasDaSessao).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("region", { name: "Estatísticas da sessão" })).toHaveTextContent(
+      "100%",
+    );
   });
 
   it("mostra o carregando e trava os botões enquanto a API responde", async () => {
@@ -261,6 +315,7 @@ describe("SessaoAtualPage com partidas", () => {
       notas: null,
     });
     expect(await screen.findByText("Partida atualizada.")).toBeInTheDocument();
+    expect(estatisticasDaSessao).toHaveBeenCalledTimes(2);
     expect(lista.queryByRole("form", { name: "Editar partida" })).not.toBeInTheDocument();
     expect(lista.getByRole("listitem")).toHaveTextContent("MMR 1012");
   });
@@ -290,6 +345,7 @@ describe("SessaoAtualPage com partidas", () => {
     expect(confirmar).toHaveBeenCalledWith("Excluir a partida 1? Isso não pode ser desfeito.");
     expect(removerPartida).toHaveBeenCalledWith(10);
     expect(await screen.findByText("Partida 1 excluída.")).toBeInTheDocument();
+    expect(estatisticasDaSessao).toHaveBeenCalledTimes(2);
     expect(lista.getByText(/Nenhuma partida registrada ainda/)).toBeInTheDocument();
   });
 
@@ -306,6 +362,29 @@ describe("SessaoAtualPage com partidas", () => {
 
     const lista = within(await screen.findByRole("region", { name: "Partidas da sessão" }));
     expect(lista.getByText(/Nenhuma partida registrada ainda/)).toBeInTheDocument();
+    expect(estatisticasDaSessao).toHaveBeenLastCalledWith(2);
+  });
+
+  it("não mostra os números da sessão anterior na próxima", async () => {
+    const usuario = userEvent.setup();
+    listarPartidas.mockResolvedValue([PARTIDA]);
+    estatisticasDaSessao
+      .mockResolvedValueOnce(ESTATISTICAS_COM_PARTIDA)
+      .mockRejectedValueOnce(new ErroDaApi("Não foi possível falar com a API. Ela está no ar?", 0));
+    encerrarSessao.mockResolvedValue({ ...SESSAO_ABERTA, status: "encerrada" });
+    iniciarSessao.mockResolvedValue({ ...SESSAO_ABERTA, id: 2 });
+    await abrirPagina();
+    expect(screen.getByText("100%")).toBeInTheDocument();
+
+    await usuario.click(screen.getByRole("button", { name: "Encerrar sessão" }));
+    await usuario.type(await screen.findByLabelText("MMR inicial"), "1009");
+    await usuario.click(screen.getByRole("button", { name: "Iniciar sessão" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível falar com a API");
+    expect(
+      screen.queryByRole("region", { name: "Estatísticas da sessão" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("MMR atual")).not.toBeInTheDocument();
   });
 
   it("não exclui quando o jogador desiste na confirmação", async () => {

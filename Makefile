@@ -1,6 +1,7 @@
-.PHONY: help install test test-unit test-integration migrate migration migrate-down run lint format up down logs ps
+.PHONY: help install test test-unit test-integration migrate migration migrate-down run lint format up down logs ps \n	front-install front-dev front-build front-test front-check front-format
 
 BACKEND := backend
+FRONTEND := frontend
 
 help:
 	@echo Available commands:
@@ -18,6 +19,13 @@ help:
 	@echo   make down    - Stop and remove the containers
 	@echo   make logs    - Follow the container logs
 	@echo   make ps      - List the containers
+	@echo Frontend:
+	@echo   make front-install - Install the frontend dependencies
+	@echo   make front-dev     - Run the frontend with Vite
+	@echo   make front-build   - Build the frontend for production
+	@echo   make front-test    - Run the frontend tests with Vitest
+	@echo   make front-check   - Check lint and formatting with Biome
+	@echo   make front-format  - Format the frontend code with Biome
 
 install:
 	@echo Installing the backend...
@@ -83,3 +91,32 @@ logs:
 
 ps:
 	@docker compose ps
+
+front-install:
+	@echo Installing the frontend...
+	@cd $(FRONTEND) && npm install
+	@echo Frontend installation complete.
+
+front-dev:
+	@echo Running the frontend...
+	@cd $(FRONTEND) && npm run dev
+
+front-build:
+	@echo Building the frontend...
+	@cd $(FRONTEND) && npm run build
+	@echo Frontend build complete.
+
+front-test:
+	@echo Running frontend tests...
+	@cd $(FRONTEND) && npm run test
+	@echo Frontend tests completed.
+
+front-check:
+	@echo Checking the frontend with Biome...
+	@cd $(FRONTEND) && npm run check
+	@echo Frontend check completed.
+
+front-format:
+	@echo Formatting the frontend code...
+	@cd $(FRONTEND) && npm run format
+	@echo Frontend formatting completed.

@@ -33,7 +33,8 @@ def criar(sessao_id: int, campos: dict) -> Partida:
     """Guarda uma partida nova na sessao e devolve ela ja com o id."""
     global _proximo_id
 
-    partida = Partida(id=_proximo_id, sessao_id=sessao_id, **campos)
+    partida = Partida(sessao_id=sessao_id, **campos)
+    partida.id = _proximo_id
     _partidas[partida.id] = partida
     _proximo_id += 1
     return partida

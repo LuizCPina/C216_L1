@@ -48,11 +48,11 @@ def criar(playlist: Playlist, mmr_inicial: int, observacoes: str | None) -> Sess
     global _proximo_id
 
     sessao = Sessao(
-        id=_proximo_id,
         playlist=playlist,
         mmr_inicial=mmr_inicial,
         observacoes=observacoes,
     )
+    sessao.id = _proximo_id
     _sessoes[sessao.id] = sessao
     _proximo_id += 1
     return sessao

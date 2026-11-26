@@ -1,12 +1,16 @@
-"""Entidade Sessao.
+"""Modelo ORM da tabela sessoes.
 
-Por enquanto e uma classe simples, guardada em memoria. Na etapa do banco
-ela vira um modelo do SQLAlchemy com os mesmos campos.
+Continua sendo uma dataclass, agora mapeada para uma tabela do banco. Os
+enums sao gravados pelo valor ("2v2", "aberta"), e nao pelo nome.
 """
 
-from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
+
+from sqlalchemy import DateTime, Enum, String
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.db.base import Base
 
 
 class Playlist(StrEnum):
@@ -29,14 +33,29 @@ def agora() -> datetime:
     return datetime.now(UTC)
 
 
-@dataclass
-class Sessao:
+def _valores(enum):
+    """Faz o SQLAlchemy gravar o valor do enum em vez do nome."""
+    return [membro.value for membro in enum]
+
+
+class Sessao(Base):
     """Um periodo jogando uma playlist."""
 
-    id: int
-    playlist: Playlist
-    mmr_inicial: int
-    observacoes: str | None = None
-    status: StatusSessao = StatusSessao.ABERTA
-    iniciada_em: datetime = field(default_factory=agora)
-    encerrada_em: datetime | None = None
+    __tablename__ = "sessoes"
+
+    id: Mapped[int] = mapped_column(primary_key=True, init=False)
+    playlist: Mapped[Playlist] = mapped_column(
+        Enum(Playlist, native_enum=False, values_callable=_valores)
+    )
+    mmr_inicial: Mapped[int]
+    observacoes: Mapped[str | None] = mapped_column(String(500), default=None)
+    status: Mapped[StatusSessao] = mapped_column(
+        Enum(StatusSessao, native_enum=False, values_callable=_valores),
+        default=StatusSessao.ABERTA,
+    )
+    iniciada_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default_factory=agora
+    )
+    encerrada_em: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )

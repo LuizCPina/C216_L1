@@ -88,7 +88,7 @@ As regras ficam na camada de serviços da API. A interface repete as de validaç
 | Backend | Python 3.12, FastAPI, Pydantic, Uvicorn, Poetry |
 | Banco de dados | PostgreSQL 16, SQLAlchemy 2, Alembic, psycopg 3 |
 | Frontend | React 19 (JavaScript), Vite, Tailwind CSS 4 |
-| Testes | Pytest, Vitest e Testing Library, Playwright |
+| Testes | Pytest, Vitest e Testing Library, Playwright. Relatórios com pytest-html, pytest-cov, @vitest/ui e @vitest/coverage-v8 |
 | Qualidade | Ruff (backend), Biome (frontend) |
 | Infraestrutura | Docker, Docker Compose, nginx (serve o frontend), Make, GitHub Actions |
 
@@ -253,8 +253,10 @@ make e2e-install            # Chromium do Playwright, só para o E2E
 | `make test` | em `backend/`: `poetry run pytest -v` | Pytest do backend: serviços com repositórios falsos (`tests/unit`) e rotas, repositórios e CORS com SQLite em memória (`tests/integration`) |
 | `make test-unit` | em `backend/`: `poetry run pytest -v tests/unit` | Só os testes unitários do backend |
 | `make test-integration` | em `backend/`: `poetry run pytest -v tests/integration` | Só os testes de integração do backend |
+| `make test-report` | em `backend/`: `poetry run pytest -v --html=relatorios/testes.html --self-contained-html --cov --cov-report=term --cov-report=html:relatorios/coverage` | Os mesmos testes do `make test`, gerando os relatórios (veja [Relatórios dos testes](#relatórios-dos-testes)) |
 | `make lint` | em `backend/`: `poetry run ruff check .` e `poetry run ruff format --check .` | Ruff no backend: lint e formatação, igual ao CI (`make format` formata) |
 | `make front-test` | em `frontend/`: `npm run test` | Vitest do frontend: validação, formatação, contas do gráfico, cliente HTTP e componentes (`tests/unit`), e as páginas com a API simulada (`tests/integration`). Para rodar só uma parte: `npm run test:unit` ou `npm run test:integration` |
+| `make front-test-report` | em `frontend/`: `npm run test:report` | Os mesmos testes do `make front-test`, gerando os relatórios |
 | `make front-check` | em `frontend/`: `npm run check` | Biome no frontend: lint, formatação e ordem dos imports (`make front-format` formata) |
 | `make e2e` | em `frontend/`: `npm run test:e2e` | Playwright no Chromium contra a aplicação inteira do `make up` |
 
@@ -268,6 +270,19 @@ make front-test
 make up
 make e2e
 ```
+
+### Relatórios dos testes
+
+O `make test-report` e o `make front-test-report` rodam os mesmos testes e geram dois relatórios em HTML, que abrem com dois cliques, sem servidor:
+
+| Arquivo | O que mostra |
+| --- | --- |
+| `backend/relatorios/testes.html` | Cada teste do backend, se passou ou falhou e quanto tempo levou |
+| `backend/relatorios/coverage/index.html` | Cobertura do backend: quanto do código de `app/` os testes executam, arquivo por arquivo |
+| `frontend/relatorios/index.html` | Cada teste do frontend, com a cobertura na aba **Coverage** |
+| `frontend/relatorios/coverage/index.html` | Cobertura do frontend: quanto do código de `src/` os testes executam |
+
+O terminal também mostra a tabela de cobertura no fim. As pastas `relatorios/` não vão para o Git.
 
 ### Testes E2E
 
@@ -295,11 +310,15 @@ Três workflows do GitHub Actions rodam a cada push e a cada pull request, em qu
 
 | Workflow | Passos |
 | --- | --- |
-| CI Backend | Ruff (lint e formatação), depois Pytest |
-| CI Frontend | Biome, depois Vitest |
+| CI Backend | Ruff (lint e formatação), depois Pytest com os relatórios. Os relatórios ficam como artefato (`relatorio-backend`) |
+| CI Frontend | Biome, depois Vitest com os relatórios. Os relatórios ficam como artefato (`relatorio-frontend`) |
 | CI E2E | `docker compose up --build --wait`, depois Playwright. O relatório fica como artefato |
 
-O resultado aparece na aba **Actions** do repositório e na aba **Checks** do pull request. O relatório do Playwright fica em **Artifacts**, no fim da página da execução do CI E2E. Para ver: baixe o zip, extraia, e em `frontend/` rode `npx playwright show-report <pasta-extraída>`.
+O resultado aparece na aba **Actions** do repositório e na aba **Checks** do pull request. Na página de cada execução:
+- **Resumo:** o CI Backend mostra uma tabela com quantos testes passaram, falharam, deram erro ou foram pulados, e a cobertura dos arquivos que não estão 100% cobertos. O CI Frontend mostra o resumo do Vitest.
+- **Artifacts**, no fim da página: os relatórios, que sobem mesmo quando algum teste falha. Para ver, baixe o zip e extraia.
+  - `relatorio-backend` e `relatorio-frontend`: abra os arquivos da tabela de [Relatórios dos testes](#relatórios-dos-testes).
+  - `playwright-report` (CI E2E): em `frontend/`, rode `npx playwright show-report <pasta-extraída>`.
 
 ## Acesso
 

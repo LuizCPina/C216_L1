@@ -56,8 +56,9 @@ test-integration:
 
 test-report:
 	@echo Running tests with reports...
-	@cd $(BACKEND) && poetry run pytest -v --html=relatorios/testes.html --self-contained-html --cov --cov-report=term --cov-report=html:relatorios/coverage
-	@echo Reports: backend/relatorios/testes.html and backend/relatorios/coverage/index.html
+	@cd $(BACKEND) && poetry run pytest -v --html=relatorios/testes.html --self-contained-html --junitxml=relatorios/junit.xml --cov --cov-report=term --cov-report=html:relatorios/coverage --cov-report=xml:relatorios/cobertura.xml
+	@cd $(BACKEND) && poetry run python scripts/resumo_testes.py Backend relatorios/junit.xml relatorios/cobertura.xml > relatorios/resumo.md
+	@echo Reports: backend/relatorios/resumo.md, testes.html and coverage/index.html
 
 migrate:
 	@echo Applying migrations...
@@ -127,7 +128,8 @@ front-test:
 front-test-report:
 	@echo Running frontend tests with reports...
 	@cd $(FRONTEND) && npm run test:report
-	@echo Reports: frontend/relatorios/index.html and frontend/relatorios/coverage/index.html
+	@cd $(BACKEND) && poetry run python scripts/resumo_testes.py Frontend ../frontend/relatorios/junit.xml ../frontend/relatorios/coverage/cobertura-coverage.xml > ../frontend/relatorios/resumo.md
+	@echo Reports: frontend/relatorios/resumo.md, index.html and coverage/index.html
 
 front-check:
 	@echo Checking the frontend with Biome...

@@ -1,5 +1,6 @@
 .PHONY: help install test test-unit test-integration migrate migration migrate-down run lint format up down logs ps \
-	front-install front-dev front-build front-test front-check front-format
+	front-install front-dev front-build front-test front-check front-format \
+	e2e-install e2e
 
 BACKEND := backend
 FRONTEND := frontend
@@ -27,6 +28,9 @@ help:
 	@echo   make front-test    - Run the frontend tests with Vitest
 	@echo   make front-check   - Check lint and formatting with Biome
 	@echo   make front-format  - Format the frontend code with Biome
+	@echo End-to-end:
+	@echo   make e2e-install - Download the Chromium used by Playwright
+	@echo   make e2e         - Run the Playwright tests, with the stack up: make up
 
 install:
 	@echo Installing the backend...
@@ -121,3 +125,13 @@ front-format:
 	@echo Formatting the frontend code...
 	@cd $(FRONTEND) && npm run format
 	@echo Frontend formatting completed.
+
+e2e-install:
+	@echo Installing the Playwright browser...
+	@cd $(FRONTEND) && npx playwright install chromium
+	@echo Browser installed.
+
+e2e:
+	@echo Running end-to-end tests against http://localhost:5173...
+	@cd $(FRONTEND) && npm run test:e2e
+	@echo End-to-end tests completed.

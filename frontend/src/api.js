@@ -10,6 +10,9 @@
 // troca esse valor no build; sem ela, vale a API rodando na maquina local.
 const URL_DA_API = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
+/** Documentacao interativa da API (Swagger), que o FastAPI gera sozinho. */
+export const URL_DA_DOCUMENTACAO = `${URL_DA_API}/docs`;
+
 /** Erro de uma chamada a API, com a mensagem pronta para a tela. */
 export class ErroDaApi extends Error {
   constructor(mensagem, status) {

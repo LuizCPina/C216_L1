@@ -39,6 +39,19 @@ describe("App", () => {
     expect(await screen.findByRole("form", { name: "Nova sessão" })).toBeInTheDocument();
   });
 
+  it("tem um link para a documentação da API, que abre em outra aba", async () => {
+    render(<App />);
+
+    const link = screen.getByRole("link", { name: /Documentação da API/ });
+    expect(link).toHaveAttribute("href", "http://localhost:8000/docs");
+    expect(link).toHaveAttribute("target", "_blank");
+    // O aviso de outra aba e para leitores de tela (sr-only). Confere o texto,
+    // e nao o nome acessivel, porque o jsdom junta os pedacos sem o espaco
+    // que o Chrome mantem.
+    expect(link).toHaveTextContent("Documentação da API (abre em outra aba)");
+    await screen.findByRole("form", { name: "Nova sessão" });
+  });
+
   it("troca para o histórico e volta", async () => {
     const usuario = userEvent.setup();
     render(<App />);

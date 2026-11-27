@@ -112,6 +112,13 @@ test("edita e exclui uma partida", async ({ page }) => {
   await expect(listaDePartidas(page)).toContainText("Nenhuma partida registrada ainda");
 });
 
+test("o link do cabeçalho abre a documentação da API em outra aba", async ({ page }) => {
+  const novaAba = page.waitForEvent("popup");
+  await page.getByRole("link", { name: /Documentação da API/ }).click();
+
+  await expect(await novaAba).toHaveTitle(/Swagger UI/);
+});
+
 test("a sessão encerrada aparece no histórico com o resumo dela", async ({ page }) => {
   // Texto unico para achar esta sessao mesmo se o banco ja tiver outras.
   const observacoes = `Teste E2E ${Date.now()}`;

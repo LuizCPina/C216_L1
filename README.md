@@ -34,6 +34,12 @@ Quem joga ranqueada todo dia raramente tem um registro simples de como foi cada 
   - Filtro por playlist.
 - Toda chamada à API mostra o estado de **carregando**, **sucesso** ou **erro**. Os formulários validam os dados antes de enviar, com as mesmas regras da API.
 - O cabeçalho tem um link para a **documentação da API** (Swagger), que abre em outra aba.
+- **Layout responsivo.** Na tela grande:
+  - a sessão atual fica em duas colunas: a sessão e o formulário de registrar à esquerda (o formulário fica parado na tela enquanto a página rola), e os números, o gráfico e as partidas à direita;
+  - o formulário de nova sessão fica numa linha só;
+  - o histórico mostra as sessões em grade.
+
+  No celular, tudo fica em uma coluna.
 
 ### Regras de negócio
 

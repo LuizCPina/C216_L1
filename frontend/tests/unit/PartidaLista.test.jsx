@@ -66,6 +66,9 @@ describe("PartidaLista", () => {
 
     expect(screen.getByText("(+9)")).toHaveClass("text-emerald-700");
     expect(screen.getByText("(-9)")).toHaveClass("text-red-700");
+    // Espaco de verdade antes da variacao, nao so margem: leitor de tela e
+    // copiar e colar tambem precisam dele.
+    expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("MMR 1009 (+9)");
   });
 
   it("deixa sem variação a partida que ainda não está nos números", () => {

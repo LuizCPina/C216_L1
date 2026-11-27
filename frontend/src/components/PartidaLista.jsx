@@ -66,9 +66,12 @@ export default function PartidaLista({
                 <span className="text-sm text-slate-600">
                   MMR {partida.mmr_depois}
                   {partida.id in variacoes && (
-                    <span className={`ml-1 font-medium ${corDoSinal(variacoes[partida.id])}`}>
-                      ({formatarVariacao(variacoes[partida.id])})
-                    </span>
+                    <>
+                      {" "}
+                      <span className={`font-medium ${corDoSinal(variacoes[partida.id])}`}>
+                        ({formatarVariacao(variacoes[partida.id])})
+                      </span>
+                    </>
                   )}
                 </span>
 

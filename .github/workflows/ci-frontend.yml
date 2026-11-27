@@ -55,10 +55,15 @@ jobs:
         run: npm ci
 
       # Os mesmos testes do npm run test, gerando os relatorios em
-      # frontend/relatorios. No Actions, o Vitest tambem escreve o resumo
-      # dos testes na pagina da execucao.
+      # frontend/relatorios (veja vitest.relatorio.config.js).
       - name: Run tests
         run: npm run test:report
+
+      # Resumo em portugues na pagina da execucao, com o mesmo script do
+      # backend (so usa a biblioteca padrao do Python, que o runner ja tem).
+      - name: Test summary
+        if: ${{ !cancelled() }}
+        run: python3 ../backend/scripts/resumo_testes.py Frontend relatorios/junit.xml relatorios/coverage/cobertura-coverage.xml >> "$GITHUB_STEP_SUMMARY"
 
       # Mesmo se algum teste falhar, os relatorios sobem: e quando mais servem.
       - name: Upload test reports

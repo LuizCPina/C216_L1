@@ -1,5 +1,5 @@
-.PHONY: help install test test-unit test-integration migrate migration migrate-down run lint format up down logs ps \
-	front-install front-dev front-build front-test front-check front-format \
+.PHONY: help install test test-unit test-integration test-report migrate migration migrate-down run lint format up down logs ps \
+	front-install front-dev front-build front-test front-test-report front-check front-format \
 	e2e-install e2e
 
 BACKEND := backend
@@ -11,6 +11,7 @@ help:
 	@echo   make test    - Run the backend tests
 	@echo   make test-unit - Run only the unit tests
 	@echo   make test-integration - Run only the integration tests
+	@echo   make test-report - Run the backend tests and generate the HTML and coverage reports
 	@echo   make migrate - Apply the pending database migrations
 	@echo   make migration m=message - Create a migration from the models
 	@echo   make migrate-down - Revert the last migration
@@ -26,6 +27,7 @@ help:
 	@echo   make front-dev     - Run the frontend with Vite
 	@echo   make front-build   - Build the frontend for production
 	@echo   make front-test    - Run the frontend tests with Vitest
+	@echo   make front-test-report - Run the frontend tests and generate the HTML and coverage reports
 	@echo   make front-check   - Check lint and formatting with Biome
 	@echo   make front-format  - Format the frontend code with Biome
 	@echo End-to-end:
@@ -51,6 +53,11 @@ test-integration:
 	@echo Running integration tests...
 	@cd $(BACKEND) && poetry run pytest -v tests/integration
 	@echo Integration tests completed.
+
+test-report:
+	@echo Running tests with reports...
+	@cd $(BACKEND) && poetry run pytest -v --html=relatorios/testes.html --self-contained-html --cov --cov-report=term --cov-report=html:relatorios/coverage
+	@echo Reports: backend/relatorios/testes.html and backend/relatorios/coverage/index.html
 
 migrate:
 	@echo Applying migrations...
@@ -116,6 +123,11 @@ front-test:
 	@echo Running frontend tests...
 	@cd $(FRONTEND) && npm run test
 	@echo Frontend tests completed.
+
+front-test-report:
+	@echo Running frontend tests with reports...
+	@cd $(FRONTEND) && npm run test:report
+	@echo Reports: frontend/relatorios/index.html and frontend/relatorios/coverage/index.html
 
 front-check:
 	@echo Checking the frontend with Biome...

@@ -11,6 +11,20 @@ const FORMULARIO_VAZIO = {
   notas: "",
 };
 
+/**
+ * Rotulo do placar com uma bolinha na cor do time: azul o seu, laranja o
+ * adversario, como no jogo. A bolinha e so enfeite e nao tem texto, entao o
+ * nome do campo continua "Seu time" ou "Adversário".
+ */
+function RotuloDoTime({ cor, children }) {
+  return (
+    <>
+      <span aria-hidden="true" className={`mr-1.5 inline-block h-2.5 w-2.5 rounded-full ${cor}`} />
+      {children}
+    </>
+  );
+}
+
 /** Os campos do formulario guardam texto: a partida da API vira texto aqui. */
 function camposDaPartida(partida) {
   if (!partida) {
@@ -85,7 +99,11 @@ export default function PartidaForm({ playlist, partida, onSalvar, onCancelar, o
       >
         <legend className="text-sm font-medium text-slate-700">Placar</legend>
         <div className="grid items-start gap-4 sm:grid-cols-3">
-          <Campo id={id("gols_pro")} rotulo="Seu time" erro={erros.gols_pro}>
+          <Campo
+            id={id("gols_pro")}
+            rotulo={<RotuloDoTime cor="bg-blue-600">Seu time</RotuloDoTime>}
+            erro={erros.gols_pro}
+          >
             <input
               id={id("gols_pro")}
               name="gols_pro"
@@ -101,7 +119,11 @@ export default function PartidaForm({ playlist, partida, onSalvar, onCancelar, o
             />
           </Campo>
 
-          <Campo id={id("gols_contra")} rotulo="Adversário" erro={erros.gols_contra}>
+          <Campo
+            id={id("gols_contra")}
+            rotulo={<RotuloDoTime cor="bg-orange-500">Adversário</RotuloDoTime>}
+            erro={erros.gols_contra}
+          >
             <input
               id={id("gols_contra")}
               name="gols_contra"

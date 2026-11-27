@@ -57,8 +57,10 @@ export default function PartidaLista({
                 >
                   {venceu ? "Vitória" : "Derrota"}
                 </span>
+                {/* Placar nas cores dos times: o seu em azul, o adversario em laranja. */}
                 <span className="font-semibold tabular-nums text-slate-900">
-                  {partida.gols_pro} × {partida.gols_contra}
+                  <span className="text-blue-700">{partida.gols_pro}</span> ×{" "}
+                  <span className="text-orange-700">{partida.gols_contra}</span>
                   {partida.overtime && (
                     <span className="ml-1 text-xs font-normal text-slate-500">overtime</span>
                   )}

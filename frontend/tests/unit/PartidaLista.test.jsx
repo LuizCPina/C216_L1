@@ -61,6 +61,14 @@ describe("PartidaLista", () => {
     expect(segunda).not.toHaveTextContent("Com");
   });
 
+  it("pinta o placar com as cores dos times: o seu em azul e o adversário em laranja", () => {
+    renderizar();
+
+    const [, segunda] = screen.getAllByRole("listitem");
+    expect(within(segunda).getByText("0")).toHaveClass("text-blue-700");
+    expect(within(segunda).getByText("3")).toHaveClass("text-orange-700");
+  });
+
   it("mostra quanto o MMR mudou em cada partida, com a cor do sinal", () => {
     renderizar({ variacoes: { 10: 9, 11: -9 } });
 

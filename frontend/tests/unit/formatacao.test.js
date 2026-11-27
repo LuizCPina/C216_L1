@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   contar,
   corDoSinal,
+  faixaDoSinal,
   formatarDataHora,
   formatarPercentual,
   formatarSequencia,
@@ -49,6 +50,16 @@ describe("corDoSinal", () => {
     [0, "text-slate-900"],
   ])("%s usa %s", (valor, classe) => {
     expect(corDoSinal(valor)).toBe(classe);
+  });
+});
+
+describe("faixaDoSinal", () => {
+  it.each([
+    [1, "border-l-emerald-500"],
+    [-1, "border-l-red-500"],
+    [0, "border-l-slate-300"],
+  ])("%s usa %s", (valor, classe) => {
+    expect(faixaDoSinal(valor)).toBe(classe);
   });
 });
 

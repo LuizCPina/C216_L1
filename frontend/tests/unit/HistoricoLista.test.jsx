@@ -18,6 +18,7 @@ const ESTATISTICAS = {
   partidas: 5,
   vitorias: 3,
   derrotas: 2,
+  taxa_vitoria: 60,
   mmr_atual: 1012,
   variacao_mmr: 12,
 };
@@ -35,6 +36,33 @@ describe("HistoricoLista", () => {
     expect(screen.getByText("(+12)")).toHaveClass("text-emerald-700");
   });
 
+  it("marca com uma faixa verde a sessão que ganhou MMR e vermelha a que perdeu", () => {
+    render(
+      <HistoricoLista
+        itens={[
+          { sessao: SESSAO, estatisticas: ESTATISTICAS },
+          {
+            sessao: { ...SESSAO, id: 5 },
+            estatisticas: { ...ESTATISTICAS, mmr_atual: 992, variacao_mmr: -8 },
+          },
+        ]}
+        playlist=""
+      />,
+    );
+
+    const [ganhou, perdeu] = screen.getAllByRole("listitem");
+    expect(ganhou).toHaveClass("border-l-emerald-500");
+    expect(perdeu).toHaveClass("border-l-red-500");
+  });
+
+  it("mostra a taxa de vitória em texto e numa barra do mesmo tamanho", () => {
+    render(<HistoricoLista itens={[{ sessao: SESSAO, estatisticas: ESTATISTICAS }]} playlist="" />);
+
+    const texto = screen.getByText("60% de vitórias");
+    const barra = texto.previousElementSibling.firstElementChild;
+    expect(barra).toHaveStyle({ width: "60%" });
+  });
+
   it("avisa quando a sessão não teve partidas", () => {
     render(
       <HistoricoLista
@@ -45,6 +73,8 @@ describe("HistoricoLista", () => {
 
     expect(screen.getByRole("listitem")).toHaveTextContent("Nenhuma partida registrada.");
     expect(screen.getByRole("listitem")).not.toHaveTextContent("MMR");
+    expect(screen.getByRole("listitem")).not.toHaveTextContent("vitórias");
+    expect(screen.getByRole("listitem")).toHaveClass("border-l-slate-300");
   });
 
   it("avisa quando ainda não há sessões encerradas", () => {

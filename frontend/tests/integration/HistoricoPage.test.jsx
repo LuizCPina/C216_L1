@@ -69,8 +69,16 @@ const GERAIS = {
 
 /** Numeros de cada sessao, pelo id: a 5 ganhou 1 e a 4 ganhou 2 e perdeu 1. */
 const POR_SESSAO = {
-  5: { ...RESUMO, partidas: 1, vitorias: 1, mmr_atual: 1020, variacao_mmr: 8 },
-  4: { ...RESUMO, partidas: 3, vitorias: 2, derrotas: 1, mmr_atual: 1012, variacao_mmr: 12 },
+  5: { ...RESUMO, partidas: 1, vitorias: 1, taxa_vitoria: 100, mmr_atual: 1020, variacao_mmr: 8 },
+  4: {
+    ...RESUMO,
+    partidas: 3,
+    vitorias: 2,
+    derrotas: 1,
+    taxa_vitoria: 66.7,
+    mmr_atual: 1012,
+    variacao_mmr: 12,
+  },
 };
 
 beforeEach(() => {
@@ -97,7 +105,9 @@ describe("HistoricoPage", () => {
       screen.getByRole("region", { name: "Sessões encerradas" }),
     ).getAllByRole("listitem");
     expect(maisNova).toHaveTextContent("1 vitória e 0 derrotas · MMR 1012 → 1020 (+8)");
+    expect(maisNova).toHaveTextContent("100% de vitórias");
     expect(maisVelha).toHaveTextContent("2 vitórias e 1 derrota · MMR 1000 → 1012 (+12)");
+    expect(maisVelha).toHaveTextContent("66,7% de vitórias");
   });
 
   it("busca de novo quando o filtro de playlist muda", async () => {

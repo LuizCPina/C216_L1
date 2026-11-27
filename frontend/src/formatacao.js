@@ -45,6 +45,17 @@ export function corDoSinal(valor) {
   return "text-slate-900";
 }
 
+/** Classe da faixa na lateral de um card: verde subiu, vermelho caiu, cinza ficou igual. */
+export function faixaDoSinal(valor) {
+  if (valor > 0) {
+    return "border-l-emerald-500";
+  }
+  if (valor < 0) {
+    return "border-l-red-500";
+  }
+  return "border-l-slate-300";
+}
+
 /** Sequencia atual da API em texto: "1 vitória", "3 derrotas seguidas". */
 export function formatarSequencia(sequencia) {
   if (!sequencia) {

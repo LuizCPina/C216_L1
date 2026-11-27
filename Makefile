@@ -15,7 +15,7 @@ help:
 	@echo   make migration m=message - Create a migration from the models
 	@echo   make migrate-down - Revert the last migration
 	@echo   make run    - Run the API with Uvicorn
-	@echo   make lint    - Check the code with Ruff
+	@echo   make lint    - Check lint and formatting with Ruff, like the CI
 	@echo   make format  - Format the code with Ruff
 	@echo   make up      - Build and start web, api and db, waiting until they are ready
 	@echo   make down    - Stop and remove the containers
@@ -74,6 +74,7 @@ run:
 lint:
 	@echo Running linter...
 	@cd $(BACKEND) && poetry run ruff check .
+	@cd $(BACKEND) && poetry run ruff format --check .
 	@echo Linting completed.
 
 format:

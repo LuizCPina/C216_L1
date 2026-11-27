@@ -35,7 +35,7 @@ export default function HistoricoLista({ itens, playlist }) {
             : "Nenhuma sessão encerrada ainda. Elas aparecem aqui depois de encerrar."}
         </p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="grid gap-3 lg:grid-cols-2">
           {itens.map(({ sessao, estatisticas }) => (
             <li
               key={sessao.id}

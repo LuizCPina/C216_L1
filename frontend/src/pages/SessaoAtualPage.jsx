@@ -11,6 +11,7 @@ import {
 } from "../api.js";
 import Aviso from "../components/Aviso.jsx";
 import EstatisticasCards from "../components/EstatisticasCards.jsx";
+import GraficoMmr from "../components/GraficoMmr.jsx";
 import IniciarSessaoForm from "../components/IniciarSessaoForm.jsx";
 import PartidaForm from "../components/PartidaForm.jsx";
 import PartidaLista from "../components/PartidaLista.jsx";
@@ -203,11 +204,15 @@ export default function SessaoAtualPage() {
           <SessaoCard
             sessao={sessao}
             mmrAtual={estatisticas?.mmr_atual}
+            variacaoMmr={estatisticas?.variacao_mmr}
             onEncerrar={encerrar}
             ocupado={ocupado}
           />
           {estatisticas && (
-            <EstatisticasCards titulo="Estatísticas da sessão" estatisticas={estatisticas} />
+            <>
+              <EstatisticasCards titulo="Estatísticas da sessão" estatisticas={estatisticas} />
+              <GraficoMmr mmrInicial={estatisticas.mmr_inicial} evolucao={estatisticas.evolucao} />
+            </>
           )}
           <PartidaForm playlist={sessao.playlist} onSalvar={registrar} ocupado={ocupado} />
           <PartidaLista

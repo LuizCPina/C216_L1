@@ -25,10 +25,17 @@ describe("SessaoCard", () => {
     expect(screen.getByText("Duo com o Pedro")).toBeInTheDocument();
   });
 
-  it("mostra o MMR atual quando ele já chegou da API", () => {
-    render(<SessaoCard sessao={SESSAO} mmrAtual={1012} onEncerrar={vi.fn()} />);
+  it("mostra o MMR atual e quanto ele mudou, na cor do sinal", () => {
+    render(<SessaoCard sessao={SESSAO} mmrAtual={1012} variacaoMmr={12} onEncerrar={vi.fn()} />);
 
-    expect(screen.getByText("MMR atual").parentElement).toHaveTextContent("1012");
+    expect(screen.getByText("MMR atual").parentElement).toHaveTextContent("1012 (+12)");
+    expect(screen.getByText("(+12)")).toHaveClass("text-emerald-700");
+  });
+
+  it("mostra a queda de MMR em vermelho", () => {
+    render(<SessaoCard sessao={SESSAO} mmrAtual={991} variacaoMmr={-9} onEncerrar={vi.fn()} />);
+
+    expect(screen.getByText("(-9)")).toHaveClass("text-red-700");
   });
 
   it("esconde o MMR atual enquanto ele não chegou", () => {

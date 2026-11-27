@@ -1,14 +1,14 @@
-import { formatarDataHora } from "../formatacao.js";
+import { corDoSinal, formatarDataHora, formatarVariacao } from "../formatacao.js";
 
 /**
  * Resumo da sessao aberta, com o botao de encerrar.
  *
  * Componente de apresentacao: recebe a sessao por props e devolve o clique
  * em `onEncerrar`. Nao guarda estado. Enquanto a pagina esta `ocupado`, o
- * botao fica travado. O `mmrAtual` vem das estatisticas e so aparece quando
- * ja chegou da API.
+ * botao fica travado. O `mmrAtual` e a `variacaoMmr` vem das estatisticas e
+ * so aparecem quando ja chegaram da API.
  */
-export default function SessaoCard({ sessao, mmrAtual, onEncerrar, ocupado = false }) {
+export default function SessaoCard({ sessao, mmrAtual, variacaoMmr, onEncerrar, ocupado = false }) {
   return (
     <section
       aria-labelledby="titulo-sessao-atual"
@@ -28,24 +28,36 @@ export default function SessaoCard({ sessao, mmrAtual, onEncerrar, ocupado = fal
         </span>
       </div>
 
-      <dl className="grid grid-cols-2 gap-4">
+      {/* MMR em destaque: inicial -> atual, com quanto mudou na cor do sinal. */}
+      <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
         <div>
-          <dt className="text-sm text-slate-500">MMR inicial</dt>
-          <dd className="text-xl font-semibold text-slate-900">{sessao.mmr_inicial}</dd>
+          <p className="text-sm text-slate-500">MMR inicial</p>
+          <p className="text-3xl font-bold tabular-nums text-slate-900">{sessao.mmr_inicial}</p>
         </div>
         {mmrAtual !== undefined && (
-          <div>
-            <dt className="text-sm text-slate-500">MMR atual</dt>
-            <dd className="text-xl font-semibold text-slate-900">{mmrAtual}</dd>
-          </div>
+          <>
+            <span aria-hidden="true" className="pb-1 text-2xl text-slate-400">
+              →
+            </span>
+            <div>
+              <p className="text-sm text-slate-500">MMR atual</p>
+              <p className="text-3xl font-bold tabular-nums text-slate-900">
+                {mmrAtual}{" "}
+                <span className={`text-lg font-semibold ${corDoSinal(variacaoMmr)}`}>
+                  ({formatarVariacao(variacaoMmr)})
+                </span>
+              </p>
+            </div>
+          </>
         )}
-        {sessao.observacoes && (
-          <div className="col-span-2">
-            <dt className="text-sm text-slate-500">Observações</dt>
-            <dd className="text-slate-900">{sessao.observacoes}</dd>
-          </div>
-        )}
-      </dl>
+      </div>
+
+      {sessao.observacoes && (
+        <div>
+          <p className="text-sm text-slate-500">Observações</p>
+          <p className="text-slate-900">{sessao.observacoes}</p>
+        </div>
+      )}
 
       <button
         type="button"

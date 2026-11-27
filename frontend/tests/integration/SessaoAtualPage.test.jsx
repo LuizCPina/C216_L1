@@ -225,7 +225,7 @@ describe("SessaoAtualPage com partidas", () => {
     const numeros = screen.getByRole("region", { name: "Estatísticas da sessão" });
     expect(numeros).toHaveTextContent("100%");
     expect(numeros).toHaveTextContent("1 vitória");
-    expect(screen.getByText("MMR atual").parentElement).toHaveTextContent("1009");
+    expect(screen.getByText("MMR atual").parentElement).toHaveTextContent("1009 (+9)");
     expect(lista.getByRole("listitem")).toHaveTextContent("(+9)");
   });
 
@@ -256,6 +256,26 @@ describe("SessaoAtualPage com partidas", () => {
     expect(screen.getByRole("region", { name: "Estatísticas da sessão" })).toHaveTextContent(
       "100%",
     );
+  });
+
+  it("o gráfico do MMR aparece quando a primeira partida é registrada", async () => {
+    const usuario = userEvent.setup();
+    registrarPartida.mockResolvedValue(PARTIDA);
+    estatisticasDaSessao
+      .mockResolvedValueOnce(ESTATISTICAS_VAZIAS)
+      .mockResolvedValueOnce(ESTATISTICAS_COM_PARTIDA);
+    await abrirPagina();
+    expect(screen.queryByRole("region", { name: "Evolução do MMR" })).not.toBeInTheDocument();
+    const formulario = within(screen.getByRole("form", { name: "Registrar partida" }));
+
+    await preencherVitoria(usuario, formulario);
+    await usuario.click(formulario.getByRole("button", { name: "Registrar partida" }));
+
+    expect(
+      await screen.findByRole("img", {
+        name: "Começou em 1000 e está em 1009 depois de 1 partida.",
+      }),
+    ).toBeInTheDocument();
   });
 
   it("mostra o carregando e trava os botões enquanto a API responde", async () => {
@@ -375,6 +395,7 @@ describe("SessaoAtualPage com partidas", () => {
     iniciarSessao.mockResolvedValue({ ...SESSAO_ABERTA, id: 2 });
     await abrirPagina();
     expect(screen.getByText("100%")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Evolução do MMR" })).toBeInTheDocument();
 
     await usuario.click(screen.getByRole("button", { name: "Encerrar sessão" }));
     await usuario.type(await screen.findByLabelText("MMR inicial"), "1009");
@@ -385,6 +406,7 @@ describe("SessaoAtualPage com partidas", () => {
       screen.queryByRole("region", { name: "Estatísticas da sessão" }),
     ).not.toBeInTheDocument();
     expect(screen.queryByText("MMR atual")).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Evolução do MMR" })).not.toBeInTheDocument();
   });
 
   it("não exclui quando o jogador desiste na confirmação", async () => {

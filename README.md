@@ -279,8 +279,8 @@ O `make test-report` e o `make front-test-report` rodam os mesmos testes e geram
 | Arquivo | O que mostra |
 | --- | --- |
 | `resumo.md` | **O jeito mais fácil de ler.** Resumo em português: quantos testes passaram, as falhas com o motivo, a cobertura e a lista de todos os testes. É o mesmo resumo que aparece na página do CI. No VS Code, abra o arquivo e use `Ctrl+Shift+V` para ver formatado |
-| `testes.html` (backend) e `index.html` (frontend) | Cada teste, se passou ou falhou e quanto tempo levou. No frontend, a cobertura também aparece na aba **Coverage** |
-| `coverage/index.html` | Cobertura arquivo por arquivo, com as linhas sem teste marcadas em vermelho |
+| `testes.html` (backend) e `index.html` (frontend) | Cada teste, se passou ou falhou e quanto tempo levou. No backend, a página abre com um painel do que foi testado, com um link para a cobertura, e separa os testes por camada (unitário ou integração). No frontend, a cobertura aparece na aba **Coverage** |
+| `coverage/index.html` | Cobertura arquivo por arquivo, com as linhas sem teste marcadas em vermelho. No backend, cada linha mostra também quais testes passaram por ela (clique no `ctx` à direita) |
 
 **Cobertura** é a parte do código que os testes executam. Ela é medida só no código da aplicação: `app/` no backend e `src/` no frontend.
 
@@ -292,7 +292,7 @@ Sem o Make:
 
 ```bash
 # em backend/
-poetry run pytest -v --html=relatorios/testes.html --self-contained-html --junitxml=relatorios/junit.xml --cov --cov-report=term --cov-report=html:relatorios/coverage --cov-report=xml:relatorios/cobertura.xml
+poetry run pytest -v --html=relatorios/testes.html --self-contained-html --junitxml=relatorios/junit.xml --cov --cov-context=test --cov-report=term --cov-report=html:relatorios/coverage --cov-report=xml:relatorios/cobertura.xml
 poetry run python scripts/resumo_testes.py Backend relatorios/junit.xml relatorios/cobertura.xml > relatorios/resumo.md
 
 # em frontend/ (o resumo usa o Python do backend)

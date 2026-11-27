@@ -89,7 +89,7 @@ export default function PartidaForm({ playlist, partida, onSalvar, onCancelar, o
       onSubmit={enviar}
       noValidate
       aria-label={titulo}
-      className="space-y-4 rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-200"
+      className="@container space-y-4 rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-200"
     >
       <h2 className="text-lg font-semibold text-slate-900">{titulo}</h2>
 
@@ -98,7 +98,10 @@ export default function PartidaForm({ playlist, partida, onSalvar, onCancelar, o
         className="space-y-2"
       >
         <legend className="text-sm font-medium text-slate-700">Placar</legend>
-        <div className="grid items-start gap-4 sm:grid-cols-3">
+        {/* As colunas seguem a largura do proprio formulario (@container), que
+            muda de lugar: na coluna estreita e no celular, o placar fica em 2
+            colunas e o overtime embaixo; editando na lista, cabe tudo em 3. */}
+        <div className="grid items-start gap-4 @2xs:grid-cols-2 @xl:grid-cols-3">
           <Campo
             id={id("gols_pro")}
             rotulo={<RotuloDoTime cor="bg-blue-600">Seu time</RotuloDoTime>}
@@ -139,7 +142,7 @@ export default function PartidaForm({ playlist, partida, onSalvar, onCancelar, o
             />
           </Campo>
 
-          <div className="space-y-1 sm:pt-7">
+          <div className="space-y-1 @2xs:col-span-2 @xl:col-span-1 @xl:pt-7">
             <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
               <input
                 name="overtime"
@@ -166,7 +169,7 @@ export default function PartidaForm({ playlist, partida, onSalvar, onCancelar, o
         )}
       </fieldset>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 @sm:grid-cols-2">
         <Campo id={id("mmr_depois")} rotulo="MMR depois da partida" erro={erros.mmr_depois}>
           <input
             id={id("mmr_depois")}

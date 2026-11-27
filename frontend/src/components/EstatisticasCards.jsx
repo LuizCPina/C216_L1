@@ -23,6 +23,9 @@ function Card({ rotulo, valor, detalhe, cor = "text-slate-900" }) {
  *
  * Serve tanto para uma sessao quanto para o resumo geral, porque os dois tem
  * os mesmos campos. Componente de apresentacao: so mostra o que recebe.
+ *
+ * A quantidade de colunas segue a largura do proprio card (@container), e nao
+ * a da tela: na coluna estreita da sessao atual cabem 3, no historico cabem 5.
  */
 export default function EstatisticasCards({ titulo, descricao, estatisticas }) {
   const idTitulo = useId();
@@ -41,7 +44,7 @@ export default function EstatisticasCards({ titulo, descricao, estatisticas }) {
   return (
     <section
       aria-labelledby={idTitulo}
-      className="space-y-3 rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-200"
+      className="@container space-y-3 rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-200"
     >
       <div>
         <h2 id={idTitulo} className="text-lg font-semibold text-slate-900">
@@ -53,7 +56,7 @@ export default function EstatisticasCards({ titulo, descricao, estatisticas }) {
       {partidas === 0 ? (
         <p className="text-sm text-slate-500">Os números aparecem depois da primeira partida.</p>
       ) : (
-        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <dl className="grid grid-cols-2 gap-3 @lg:grid-cols-3 @3xl:grid-cols-5">
           <Card
             rotulo="Partidas"
             valor={partidas}

@@ -193,51 +193,71 @@ export default function SessaoAtualPage() {
     (estatisticas?.evolucao ?? []).map((ponto) => [ponto.partida_id, ponto.variacao]),
   );
 
-  return (
-    <div className="space-y-4">
+  const avisos = (
+    <>
       {emAndamento && <Aviso tipo="carregando">{emAndamento}</Aviso>}
       {sucesso && <Aviso tipo="sucesso">{sucesso}</Aviso>}
       {erro && <Aviso tipo="erro">{erro}</Aviso>}
+    </>
+  );
 
-      {sessao ? (
-        <>
-          <SessaoCard
-            sessao={sessao}
-            mmrAtual={estatisticas?.mmr_atual}
-            variacaoMmr={estatisticas?.variacao_mmr}
-            onEncerrar={encerrar}
-            ocupado={ocupado}
-          />
-          {estatisticas && (
-            <>
-              <EstatisticasCards titulo="Estatísticas da sessão" estatisticas={estatisticas} />
-              <GraficoMmr mmrInicial={estatisticas.mmr_inicial} evolucao={estatisticas.evolucao} />
-            </>
-          )}
-          <PartidaForm playlist={sessao.playlist} onSalvar={registrar} ocupado={ocupado} />
-          <PartidaLista
-            partidas={partidas}
-            variacoes={variacoes}
-            editandoId={editando?.id}
-            formularioDeEdicao={
-              editando && (
-                <PartidaForm
-                  playlist={sessao.playlist}
-                  partida={editando}
-                  onSalvar={salvarEdicao}
-                  onCancelar={() => setEditando(null)}
-                  ocupado={ocupado}
-                />
-              )
-            }
-            onEditar={setEditando}
-            onExcluir={excluir}
-            ocupado={ocupado}
-          />
-        </>
-      ) : (
+  if (!sessao) {
+    return (
+      <div className="space-y-4">
+        {avisos}
         <IniciarSessaoForm onIniciar={iniciar} ocupado={ocupado} />
-      )}
+      </div>
+    );
+  }
+
+  // Na tela grande (lg), duas colunas: a sessao e o formulario na esquerda,
+  // os numeros e as partidas na direita. No celular, uma coluna so, nesta
+  // mesma ordem.
+  return (
+    <div className="grid gap-4 lg:grid-cols-5 lg:gap-6">
+      <div className="space-y-4 lg:col-span-2">
+        <SessaoCard
+          sessao={sessao}
+          mmrAtual={estatisticas?.mmr_atual}
+          variacaoMmr={estatisticas?.variacao_mmr}
+          onEncerrar={encerrar}
+          ocupado={ocupado}
+        />
+        {/* O formulario fica parado na tela (sticky) enquanto a lista rola. Os
+            avisos vem junto, para o resultado aparecer do lado de quem clicou. */}
+        <div className="space-y-4 lg:sticky lg:top-4">
+          {avisos}
+          <PartidaForm playlist={sessao.playlist} onSalvar={registrar} ocupado={ocupado} />
+        </div>
+      </div>
+
+      <div className="space-y-4 lg:col-span-3">
+        {estatisticas && (
+          <>
+            <EstatisticasCards titulo="Estatísticas da sessão" estatisticas={estatisticas} />
+            <GraficoMmr mmrInicial={estatisticas.mmr_inicial} evolucao={estatisticas.evolucao} />
+          </>
+        )}
+        <PartidaLista
+          partidas={partidas}
+          variacoes={variacoes}
+          editandoId={editando?.id}
+          formularioDeEdicao={
+            editando && (
+              <PartidaForm
+                playlist={sessao.playlist}
+                partida={editando}
+                onSalvar={salvarEdicao}
+                onCancelar={() => setEditando(null)}
+                ocupado={ocupado}
+              />
+            )
+          }
+          onEditar={setEditando}
+          onExcluir={excluir}
+          ocupado={ocupado}
+        />
+      </div>
     </div>
   );
 }

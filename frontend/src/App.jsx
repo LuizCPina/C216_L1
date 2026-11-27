@@ -22,7 +22,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-100">
       {/* Degrade com as cores dos dois times do Rocket League: azul e laranja. */}
       <header className="bg-linear-to-r from-blue-800 via-slate-900 to-orange-700 text-white">
-        <div className="mx-auto max-w-4xl space-y-4 px-4 pt-5">
+        <div className="mx-auto max-w-[96rem] space-y-4 px-4 pt-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-center gap-3">
               <img src="/favicon.svg" alt="" className="h-10 w-10" />
@@ -75,7 +75,9 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-8">
+      {/* Largura maxima de 96rem (1536 px), igual a do cabecalho: usa a tela
+          grande sem esticar demais num monitor ultra-wide. */}
+      <main className="mx-auto max-w-[96rem] px-4 py-8">
         {aba === "atual" ? <SessaoAtualPage /> : <HistoricoPage />}
       </main>
     </div>

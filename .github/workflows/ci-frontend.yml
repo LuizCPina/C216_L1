@@ -54,5 +54,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Os mesmos testes do npm run test, gerando os relatorios em
+      # frontend/relatorios. No Actions, o Vitest tambem escreve o resumo
+      # dos testes na pagina da execucao.
       - name: Run tests
-        run: npm run test
+        run: npm run test:report
+
+      # Mesmo se algum teste falhar, os relatorios sobem: e quando mais servem.
+      - name: Upload test reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: relatorio-frontend
+          path: frontend/relatorios/
+          retention-days: 7

@@ -5,6 +5,8 @@ tabelas declaradas nos modelos ORM. Assim `make test` e o CI funcionam sem
 Docker e sem depender de um banco externo, e a suite continua rapida.
 """
 
+import os
+
 import pytest
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
@@ -48,3 +50,28 @@ def db(engine_de_teste):
         yield sessao_db
     finally:
         sessao_db.close()
+
+
+def pytest_terminal_summary(terminalreporter):
+    """No GitHub Actions, escreve o placar dos testes na pagina da execucao.
+
+    O Actions passa em GITHUB_STEP_SUMMARY o caminho de um arquivo: o que for
+    escrito nele, em Markdown, aparece no resumo do job. Fora do CI a variavel
+    nao existe e nada muda.
+    """
+    caminho = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not caminho:
+        return
+    passaram, falharam, erros, pulados = (
+        len(terminalreporter.stats.get(estado, []))
+        for estado in ("passed", "failed", "error", "skipped")
+    )
+    total = passaram + falharam + erros + pulados
+    situacao = "✅" if falharam + erros == 0 else "❌"
+    with open(caminho, "a", encoding="utf-8") as resumo:
+        resumo.write(
+            f"## {situacao} Pytest\n\n"
+            "| Passaram | Falharam | Erros | Pulados | Total |\n"
+            "| ---: | ---: | ---: | ---: | ---: |\n"
+            f"| {passaram} | {falharam} | {erros} | {pulados} | {total} |\n\n"
+        )

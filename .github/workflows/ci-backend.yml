@@ -58,5 +58,28 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-root
 
+      # Os mesmos testes do make test, gerando os relatorios do make
+      # test-report em backend/relatorios. O placar vai para o resumo da
+      # execucao pelo hook do tests/conftest.py.
       - name: Run tests
-        run: poetry run pytest -v
+        run: >-
+          poetry run pytest -v
+          --html=relatorios/testes.html --self-contained-html
+          --cov --cov-report=term --cov-report=html:relatorios/coverage
+
+      # Tabela de cobertura no resumo: so os arquivos que nao estao 100%
+      # cobertos, e o total.
+      - name: Coverage summary
+        if: ${{ !cancelled() }}
+        run: |
+          printf '### Cobertura\n\n' >> "$GITHUB_STEP_SUMMARY"
+          poetry run coverage report --format=markdown --skip-covered >> "$GITHUB_STEP_SUMMARY"
+
+      # Mesmo se algum teste falhar, os relatorios sobem: e quando mais servem.
+      - name: Upload test reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: relatorio-backend
+          path: backend/relatorios/
+          retention-days: 7

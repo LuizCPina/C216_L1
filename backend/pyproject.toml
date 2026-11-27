@@ -38,3 +38,9 @@ testpaths = ["tests"]
 source = ["app"]
 # Caminhos relativos (app/...) no XML, em vez do caminho completo da maquina.
 relative_files = true
+
+[tool.coverage.html]
+title = "Diário de Ranked — cobertura do backend"
+# Em cada linha, um botao mostra os testes que passaram por ela (os testes
+# sao gravados pelo --cov-context=test do make test-report e do CI).
+show_contexts = true

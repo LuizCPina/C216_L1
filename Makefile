@@ -56,7 +56,7 @@ test-integration:
 
 test-report:
 	@echo Running tests with reports...
-	@cd $(BACKEND) && poetry run pytest -v --html=relatorios/testes.html --self-contained-html --junitxml=relatorios/junit.xml --cov --cov-report=term --cov-report=html:relatorios/coverage --cov-report=xml:relatorios/cobertura.xml
+	@cd $(BACKEND) && poetry run pytest -v --html=relatorios/testes.html --self-contained-html --junitxml=relatorios/junit.xml --cov --cov-context=test --cov-report=term --cov-report=html:relatorios/coverage --cov-report=xml:relatorios/cobertura.xml
 	@cd $(BACKEND) && poetry run python scripts/resumo_testes.py Backend relatorios/junit.xml relatorios/cobertura.xml > relatorios/resumo.md
 	@echo Reports: backend/relatorios/resumo.md, testes.html and coverage/index.html
 

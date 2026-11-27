@@ -66,7 +66,8 @@ jobs:
           poetry run pytest -v
           --html=relatorios/testes.html --self-contained-html
           --junitxml=relatorios/junit.xml
-          --cov --cov-report=term --cov-report=html:relatorios/coverage
+          --cov --cov-context=test
+          --cov-report=term --cov-report=html:relatorios/coverage
           --cov-report=xml:relatorios/cobertura.xml
 
       # Resumo em portugues na pagina da execucao. Roda mesmo se algum teste

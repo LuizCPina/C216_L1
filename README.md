@@ -21,17 +21,19 @@ Quem joga ranqueada todo dia raramente tem um registro simples de como foi cada 
 
 - **Sessão atual**
   - Iniciar uma sessão escolhendo a playlist, o MMR inicial e observações opcionais.
-  - Ver a sessão aberta com o MMR inicial e o **MMR atual**, e encerrá-la.
+  - Ver a sessão aberta com o MMR inicial → **MMR atual** em destaque (com a variação em verde ou vermelho) e encerrá-la.
 - **Partidas (CRUD completo pela tela)**
   - Registrar uma partida: placar, overtime, MMR depois da partida, companheiro (o campo não aparece em `1v1`) e notas.
-  - Listar as partidas da sessão na ordem em que foram jogadas, com resultado, placar e **quanto o MMR mudou em cada uma**.
+  - Listar as partidas da sessão na ordem em que foram jogadas, com resultado, placar (o seu time em azul e o adversário em laranja, como no jogo) e **quanto o MMR mudou em cada uma**.
   - Editar uma partida na própria linha da lista e excluir com confirmação.
 - **Estatísticas da sessão**: partidas, taxa de vitória, sequência atual, variação de MMR e saldo de gols.
+- **Gráfico da evolução do MMR** na sessão atual, partida a partida, com os pontos em verde (subiu) ou vermelho (caiu). É desenhado em SVG, sem biblioteca de gráficos; passar o mouse num ponto mostra o MMR daquela partida.
 - **Histórico**
   - Resumo geral de todas as sessões, com os mesmos números.
-  - Sessões encerradas, cada uma com vitórias, derrotas e a variação de MMR.
+  - Sessões encerradas, cada uma com vitórias, derrotas, a variação de MMR (com uma faixa verde ou vermelha na lateral) e uma barra da taxa de vitória.
   - Filtro por playlist.
 - Toda chamada à API mostra o estado de **carregando**, **sucesso** ou **erro**. Os formulários validam os dados antes de enviar, com as mesmas regras da API.
+- O cabeçalho tem um link para a **documentação da API** (Swagger), que abre em outra aba.
 
 ### Regras de negócio
 
@@ -71,7 +73,7 @@ As regras ficam na camada de serviços da API. A interface repete as de validaç
 | `GET` | `/sessoes/{id}/estatisticas` | Números da sessão e a evolução do MMR partida a partida |
 | `GET` | `/estatisticas` | Resumo de todas as sessões (filtro: `playlist`) |
 
-`PATCH /sessoes/{id}` e `DELETE /sessoes/{id}` existem na API, mas a interface não usa essas duas rotas. A documentação interativa (Swagger) fica em http://localhost:8000/docs.
+`PATCH /sessoes/{id}` e `DELETE /sessoes/{id}` existem na API, mas a interface não usa essas duas rotas. A documentação interativa (Swagger) fica em http://localhost:8000/docs, e o link "Documentação da API" no cabeçalho da interface leva até ela.
 
 ## Tecnologias
 
@@ -111,9 +113,10 @@ O navegador baixa a página do serviço `web` e chama a API diretamente. Por iss
 ├── frontend/
 │   ├── src/
 │   │   ├── pages/           Sessão atual e Histórico: guardam o estado e chamam a API
-│   │   ├── components/      formulários, listas e cards (só recebem dados e devolvem eventos)
+│   │   ├── components/      formulários, listas, cards e o gráfico (só recebem dados e devolvem eventos)
 │   │   ├── api.js           cliente HTTP da API
-│   │   └── validacao.js, formatacao.js
+│   │   └── validacao.js, formatacao.js, grafico.js
+│   ├── public/              ícone da aplicação (favicon.svg)
 │   ├── tests/               unit/ e integration/ (Vitest), e2e/ (Playwright)
 │   └── Dockerfile
 ├── .github/workflows/       CI Backend, CI Frontend e CI E2E
@@ -208,11 +211,11 @@ make front-dev              # Vite em http://localhost:5173
 | --- | --- |
 | `make test` | Pytest do backend: serviços com repositórios falsos (`tests/unit`) e rotas, repositórios e CORS com SQLite em memória (`tests/integration`) |
 | `make lint` | Ruff no backend (`make format` formata) |
-| `make front-test` | Vitest do frontend: validação, formatação, cliente HTTP e componentes (`tests/unit`), e as páginas com a API simulada (`tests/integration`) |
+| `make front-test` | Vitest do frontend: validação, formatação, contas do gráfico, cliente HTTP e componentes (`tests/unit`), e as páginas com a API simulada (`tests/integration`) |
 | `make front-check` | Biome no frontend: lint, formatação e ordem dos imports (`make front-format` formata) |
 | `make e2e` | Playwright no Chromium contra a aplicação inteira do `make up` |
 
-Os testes E2E usam frontend, API e PostgreSQL de verdade. Eles iniciam uma sessão, registram uma partida e conferem que ela continua lá depois de recarregar a página. Também testam o placar empatado, a edição e a exclusão de partidas e o histórico. Para rodar:
+Os testes E2E usam frontend, API e PostgreSQL de verdade. Eles iniciam uma sessão, registram uma partida e conferem que ela continua lá depois de recarregar a página. Também testam o placar empatado, a edição e a exclusão de partidas, o histórico e o link para a documentação da API. Para rodar:
 
 ```bash
 make up
@@ -241,5 +244,5 @@ Com o `make up` rodando:
 | --- | --- |
 | Aplicação | http://localhost:5173 |
 | API | http://localhost:8000 |
-| Documentação da API (Swagger) | http://localhost:8000/docs |
+| Documentação da API (Swagger) | http://localhost:8000/docs (ou pelo link no cabeçalho da aplicação) |
 | PostgreSQL | `localhost:5432`, usuário `app`, senha `app`, banco `app` |

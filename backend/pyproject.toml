@@ -36,3 +36,5 @@ testpaths = ["tests"]
 [tool.coverage.run]
 # A cobertura mede so o codigo da aplicacao, nao os proprios testes.
 source = ["app"]
+# Caminhos relativos (app/...) no XML, em vez do caminho completo da maquina.
+relative_files = true

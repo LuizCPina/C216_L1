@@ -48,7 +48,9 @@ export default function IniciarSessaoForm({ onIniciar, ocupado = false }) {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* Celular: um campo por linha. Tela media: playlist e MMR lado a lado.
+          Tela grande (lg): tudo numa linha so, com o botao no fim. */}
+      <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-[10rem_12rem_1fr_auto]">
         <Campo id="playlist" rotulo="Playlist" erro={erros.playlist}>
           <select
             id="playlist"
@@ -82,29 +84,34 @@ export default function IniciarSessaoForm({ onIniciar, ocupado = false }) {
             className={CLASSE_ENTRADA}
           />
         </Campo>
+
+        <div className="sm:col-span-2 lg:col-span-1">
+          <Campo id="observacoes" rotulo="Observações (opcional)" erro={erros.observacoes}>
+            {/* Na linha da tela grande, a caixa tem a altura dos outros campos
+                (h-10.5 = 42px); ainda da para puxar o canto para aumentar. */}
+            <textarea
+              id="observacoes"
+              name="observacoes"
+              rows="2"
+              maxLength={LIMITE_OBSERVACOES}
+              value={campos.observacoes}
+              onChange={alterar}
+              aria-invalid={Boolean(erros.observacoes)}
+              aria-describedby={erros.observacoes ? "erro-observacoes" : undefined}
+              className={`${CLASSE_ENTRADA} lg:h-10.5`}
+            />
+          </Campo>
+        </div>
+
+        {/* lg:mt-6 desce o botao a altura de um rotulo, alinhando com os campos. */}
+        <button
+          type="submit"
+          disabled={ocupado}
+          className="justify-self-start rounded-md bg-sky-600 px-4 py-2 font-medium whitespace-nowrap text-white transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 disabled:opacity-60 lg:mt-6"
+        >
+          Iniciar sessão
+        </button>
       </div>
-
-      <Campo id="observacoes" rotulo="Observações (opcional)" erro={erros.observacoes}>
-        <textarea
-          id="observacoes"
-          name="observacoes"
-          rows="2"
-          maxLength={LIMITE_OBSERVACOES}
-          value={campos.observacoes}
-          onChange={alterar}
-          aria-invalid={Boolean(erros.observacoes)}
-          aria-describedby={erros.observacoes ? "erro-observacoes" : undefined}
-          className={CLASSE_ENTRADA}
-        />
-      </Campo>
-
-      <button
-        type="submit"
-        disabled={ocupado}
-        className="rounded-md bg-sky-600 px-4 py-2 font-medium text-white transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 disabled:opacity-60"
-      >
-        Iniciar sessão
-      </button>
     </form>
   );
 }

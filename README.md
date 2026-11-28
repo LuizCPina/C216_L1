@@ -50,6 +50,7 @@ As regras ficam na camada de serviços da API. A interface repete as de validaç
 | Não existe empate no Rocket League: placar igual é recusado | 422 |
 | O overtime termina no primeiro gol: com overtime, a diferença precisa ser de exatamente 1 gol | 422 |
 | Sessão `1v1` não tem companheiro de equipe | 422 |
+| Na ranqueada, vitória sempre sobe o MMR e derrota sempre baixa: o MMR depois da partida precisa ser maior (vitória) ou menor (derrota) que o MMR antes dela | 422 |
 | Números inteiros a partir de 0, playlist `1v1`/`2v2`/`3v3`, limite de tamanho nos textos | 422 |
 | Só pode existir uma sessão aberta por vez | 409 |
 | Partidas só podem ser registradas, editadas ou excluídas em sessão aberta | 409 |
@@ -57,7 +58,8 @@ As regras ficam na camada de serviços da API. A interface repete as de validaç
 | Sessão ou partida inexistente | 404 |
 
 - O **resultado** (vitória ou derrota) e as **estatísticas** são calculados toda vez que são pedidos, nunca gravados. Por isso editar ou excluir uma partida nunca deixa os números desatualizados.
-- A **variação de MMR** de uma partida é o MMR depois dela menos o MMR da partida anterior (ou o MMR inicial da sessão, se for a primeira).
+- A **variação de MMR** de uma partida é o MMR depois dela menos o MMR da partida anterior (ou o MMR inicial da sessão, se for a primeira). É com esse mesmo MMR anterior que a regra da vitória e da derrota compara.
+- Ao editar, a regra compara a partida só com a anterior a ela. A edição nunca é barrada por causa das partidas seguintes, para dar para corrigir um erro de digitação no meio da sessão.
 - Apagar uma sessão apaga as partidas dela junto (`ON DELETE CASCADE` no banco).
 
 ### API

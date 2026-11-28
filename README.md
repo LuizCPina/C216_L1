@@ -56,6 +56,7 @@ As regras ficam na camada de serviços da API. A interface repete as de validaç
 | Partidas só podem ser registradas, editadas ou excluídas em sessão aberta | 409 |
 | Uma sessão encerrada não pode ser encerrada de novo | 409 |
 | Sessão ou partida inexistente | 404 |
+| Vitória precisa subir o MMR e derrota precisa baixar | 422 |
 
 - O **resultado** (vitória ou derrota) e as **estatísticas** são calculados toda vez que são pedidos, nunca gravados. Por isso editar ou excluir uma partida nunca deixa os números desatualizados.
 - A **variação de MMR** de uma partida é o MMR depois dela menos o MMR da partida anterior (ou o MMR inicial da sessão, se for a primeira). É com esse mesmo MMR anterior que a regra da vitória e da derrota compara.

@@ -47,8 +47,17 @@ function camposDaPartida(partida) {
  * e mostra o botao de cancelar. Em sessao 1v1 o campo de companheiro nem
  * aparece. Quem chama a API e a pagina: `onSalvar` recebe os dados no formato
  * dela e devolve true quando deu certo, para o formulario voltar a ficar vazio.
+ * `mmrAntes` e o MMR antes desta partida, para avisar se uma vitoria nao subiu
+ * o MMR ou uma derrota nao baixou.
  */
-export default function PartidaForm({ playlist, partida, onSalvar, onCancelar, ocupado = false }) {
+export default function PartidaForm({
+  playlist,
+  partida,
+  mmrAntes,
+  onSalvar,
+  onCancelar,
+  ocupado = false,
+}) {
   const editando = Boolean(partida);
   const titulo = editando ? "Editar partida" : "Registrar partida";
   const [campos, setCampos] = useState(() => camposDaPartida(partida));
@@ -66,7 +75,7 @@ export default function PartidaForm({ playlist, partida, onSalvar, onCancelar, o
 
   async function enviar(evento) {
     evento.preventDefault();
-    const encontrados = validarPartida(campos);
+    const encontrados = validarPartida(campos, mmrAntes);
     setErros(encontrados);
     if (Object.keys(encontrados).length > 0) {
       return;

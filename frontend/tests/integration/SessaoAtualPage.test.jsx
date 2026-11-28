@@ -340,6 +340,43 @@ describe("SessaoAtualPage com partidas", () => {
     expect(lista.getByRole("listitem")).toHaveTextContent("MMR 1012");
   });
 
+  it("não registra vitória com MMR abaixo do atual e não chama a API", async () => {
+    const usuario = userEvent.setup();
+    listarPartidas.mockResolvedValue([PARTIDA]);
+    await abrirPagina();
+    const formulario = within(screen.getByRole("form", { name: "Registrar partida" }));
+
+    await usuario.type(formulario.getByLabelText("Seu time"), "3");
+    await usuario.type(formulario.getByLabelText("Adversário"), "1");
+    await usuario.type(formulario.getByLabelText("MMR depois da partida"), "1005");
+    await usuario.click(formulario.getByRole("button", { name: "Registrar partida" }));
+
+    // O MMR atual e o da ultima partida (1009), nao o inicial (1000).
+    expect(formulario.getByLabelText("MMR depois da partida")).toHaveAccessibleDescription(
+      "Numa vitória o MMR sobe: precisa ser maior que 1009.",
+    );
+    expect(registrarPartida).not.toHaveBeenCalled();
+  });
+
+  it("na edição compara com o MMR da partida de antes dela", async () => {
+    const usuario = userEvent.setup();
+    const segunda = { ...PARTIDA, id: 11, mmr_depois: 1018 };
+    listarPartidas.mockResolvedValue([PARTIDA, segunda]);
+    const lista = await abrirPagina();
+
+    await usuario.click(lista.getByRole("button", { name: "Editar partida 2" }));
+    const edicao = within(lista.getByRole("form", { name: "Editar partida" }));
+    await usuario.clear(edicao.getByLabelText("MMR depois da partida"));
+    await usuario.type(edicao.getByLabelText("MMR depois da partida"), "1005");
+    await usuario.click(edicao.getByRole("button", { name: "Salvar alterações" }));
+
+    // Antes da partida 2 vem a partida 1 (1009): nao o inicial nem a propria.
+    expect(edicao.getByLabelText("MMR depois da partida")).toHaveAccessibleDescription(
+      "Numa vitória o MMR sobe: precisa ser maior que 1009.",
+    );
+    expect(editarPartida).not.toHaveBeenCalled();
+  });
+
   it("cancela a edição sem chamar a API", async () => {
     const usuario = userEvent.setup();
     listarPartidas.mockResolvedValue([PARTIDA]);

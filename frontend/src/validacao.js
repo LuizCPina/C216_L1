@@ -54,20 +54,28 @@ export function validarSessao({ playlist, mmr_inicial, observacoes = "" }) {
 }
 
 /**
+ * MMR antes de uma partida: o da partida anterior na lista ou, para a
+ * primeira, o MMR inicial da sessao. Sem `partidaId`, e o MMR antes da
+ * proxima partida, a que vai ser registrada. E a mesma conta da API.
+ */
+export function mmrAntesDe(partidas, mmrInicial, partidaId) {
+  const posicao =
+    partidaId === undefined ? partidas.length : partidas.findIndex((p) => p.id === partidaId);
+  return posicao > 0 ? partidas[posicao - 1].mmr_depois : mmrInicial;
+}
+
+/**
  * Valida o formulario de partida (registrar ou editar).
  *
  * Alem do formato dos campos, confere as regras do Rocket League que a API
- * tambem confere: nao existe empate e o overtime acaba no primeiro gol. A
+ * tambem confere: nao existe empate, o overtime acaba no primeiro gol e, com
+ * `mmrAntes` (o MMR antes da partida), vitoria sobe o MMR e derrota baixa. A
  * regra do 1v1 sem companheiro fica no formulario, que nem mostra o campo.
  */
-export function validarPartida({
-  gols_pro,
-  gols_contra,
-  overtime,
-  mmr_depois,
-  companheiro = "",
-  notas = "",
-}) {
+export function validarPartida(
+  { gols_pro, gols_contra, overtime, mmr_depois, companheiro = "", notas = "" },
+  mmrAntes,
+) {
   const erros = {};
   const erroPro = validarInteiroNaoNegativo(gols_pro, "o placar do seu time");
   const erroContra = validarInteiroNaoNegativo(gols_contra, "o placar do adversário");
@@ -89,6 +97,17 @@ export function validarPartida({
   const erroMmr = validarInteiroNaoNegativo(mmr_depois, "o MMR depois da partida");
   if (erroMmr) {
     erros.mmr_depois = erroMmr;
+  }
+  // So da para saber se o MMR subiu ou caiu com o placar e o MMR validos.
+  const temVencedor = !erroPro && !erroContra && !erros.placar;
+  if (temVencedor && !erroMmr && mmrAntes !== undefined) {
+    const venceu = Number(gols_pro) > Number(gols_contra);
+    const mmr = Number(mmr_depois);
+    if (venceu && mmr <= mmrAntes) {
+      erros.mmr_depois = `Numa vitória o MMR sobe: precisa ser maior que ${mmrAntes}.`;
+    } else if (!venceu && mmr >= mmrAntes) {
+      erros.mmr_depois = `Numa derrota o MMR cai: precisa ser menor que ${mmrAntes}.`;
+    }
   }
   if (companheiro.length > LIMITE_COMPANHEIRO) {
     erros.companheiro = `O companheiro pode ter no máximo ${LIMITE_COMPANHEIRO} caracteres.`;

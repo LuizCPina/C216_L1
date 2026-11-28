@@ -16,6 +16,7 @@ import IniciarSessaoForm from "../components/IniciarSessaoForm.jsx";
 import PartidaForm from "../components/PartidaForm.jsx";
 import PartidaLista from "../components/PartidaLista.jsx";
 import SessaoCard from "../components/SessaoCard.jsx";
+import { mmrAntesDe } from "../validacao.js";
 
 /**
  * Pagina da sessao atual e das partidas dela.
@@ -227,7 +228,12 @@ export default function SessaoAtualPage() {
             avisos vem junto, para o resultado aparecer do lado de quem clicou. */}
         <div className="space-y-4 lg:sticky lg:top-4">
           {avisos}
-          <PartidaForm playlist={sessao.playlist} onSalvar={registrar} ocupado={ocupado} />
+          <PartidaForm
+            playlist={sessao.playlist}
+            mmrAntes={mmrAntesDe(partidas, sessao.mmr_inicial)}
+            onSalvar={registrar}
+            ocupado={ocupado}
+          />
         </div>
       </div>
 
@@ -247,6 +253,7 @@ export default function SessaoAtualPage() {
               <PartidaForm
                 playlist={sessao.playlist}
                 partida={editando}
+                mmrAntes={mmrAntesDe(partidas, sessao.mmr_inicial, editando.id)}
                 onSalvar={salvarEdicao}
                 onCancelar={() => setEditando(null)}
                 ocupado={ocupado}

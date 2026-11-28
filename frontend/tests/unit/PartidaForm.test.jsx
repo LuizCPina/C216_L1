@@ -90,6 +90,34 @@ describe("PartidaForm", () => {
     );
   });
 
+  it("não envia vitória que baixa o MMR e mostra o erro no campo", async () => {
+    const usuario = userEvent.setup();
+    const onSalvar = vi.fn();
+    render(<PartidaForm playlist="2v2" mmrAntes={1000} onSalvar={onSalvar} />);
+
+    await preencher(usuario, { pro: "3", contra: "1", mmr: "995" });
+    await usuario.click(screen.getByRole("button", { name: "Registrar partida" }));
+
+    expect(onSalvar).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("MMR depois da partida")).toHaveAccessibleDescription(
+      "Numa vitória o MMR sobe: precisa ser maior que 1000.",
+    );
+  });
+
+  it("não envia derrota que sobe o MMR", async () => {
+    const usuario = userEvent.setup();
+    const onSalvar = vi.fn();
+    render(<PartidaForm playlist="2v2" mmrAntes={1000} onSalvar={onSalvar} />);
+
+    await preencher(usuario, { pro: "1", contra: "3", mmr: "1005" });
+    await usuario.click(screen.getByRole("button", { name: "Registrar partida" }));
+
+    expect(onSalvar).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("MMR depois da partida")).toHaveAccessibleDescription(
+      "Numa derrota o MMR cai: precisa ser menor que 1000.",
+    );
+  });
+
   it("não envia overtime com mais de um gol de diferença", async () => {
     const usuario = userEvent.setup();
     const onSalvar = vi.fn();

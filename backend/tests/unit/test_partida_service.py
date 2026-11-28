@@ -47,7 +47,7 @@ def test_registrar_derrota():
     sessao = abrir_sessao()
 
     partida = servico.registrar(
-        None, sessao.id, nova_partida(gols_pro=0, gols_contra=2)
+        None, sessao.id, nova_partida(gols_pro=0, gols_contra=2, mmr_depois=990)
     )
 
     assert partida.resultado == Resultado.DERROTA
@@ -75,7 +75,9 @@ def test_aceita_overtime_com_diferenca_de_um_gol():
     sessao = abrir_sessao()
 
     partida = servico.registrar(
-        None, sessao.id, nova_partida(gols_pro=2, gols_contra=3, overtime=True)
+        None,
+        sessao.id,
+        nova_partida(gols_pro=2, gols_contra=3, overtime=True, mmr_depois=990),
     )
 
     assert partida.overtime is True
@@ -149,11 +151,86 @@ def test_nao_remove_partida_de_sessao_encerrada():
 # Listagem
 
 
+# Regra: na ranqueada, vitoria sobe o MMR e derrota baixa. A comparacao e com
+# o MMR antes da partida: o da partida anterior ou o inicial da sessao (1000).
+
+
+def test_recusa_vitoria_que_baixa_o_mmr():
+    sessao = abrir_sessao()
+
+    with pytest.raises(servico.PartidaInvalida, match="maior que 1000"):
+        servico.registrar(None, sessao.id, nova_partida(mmr_depois=995))
+
+
+def test_recusa_vitoria_com_o_mmr_igual():
+    sessao = abrir_sessao()
+
+    with pytest.raises(servico.PartidaInvalida, match="maior que 1000"):
+        servico.registrar(None, sessao.id, nova_partida(mmr_depois=1000))
+
+
+def test_recusa_derrota_que_sobe_o_mmr():
+    sessao = abrir_sessao()
+
+    with pytest.raises(servico.PartidaInvalida, match="menor que 1000"):
+        servico.registrar(
+            None, sessao.id, nova_partida(gols_pro=1, gols_contra=3, mmr_depois=1005)
+        )
+
+
+def test_recusa_derrota_com_o_mmr_igual():
+    sessao = abrir_sessao()
+
+    with pytest.raises(servico.PartidaInvalida, match="menor que 1000"):
+        servico.registrar(
+            None, sessao.id, nova_partida(gols_pro=1, gols_contra=3, mmr_depois=1000)
+        )
+
+
+def test_compara_com_o_mmr_da_partida_anterior():
+    sessao = abrir_sessao()
+    servico.registrar(None, sessao.id, nova_partida(mmr_depois=1010))
+
+    # 1005 e mais que o MMR inicial, mas menos que o da partida de antes.
+    with pytest.raises(servico.PartidaInvalida, match="maior que 1010"):
+        servico.registrar(None, sessao.id, nova_partida(mmr_depois=1005))
+    derrota = servico.registrar(
+        None, sessao.id, nova_partida(gols_pro=0, gols_contra=1, mmr_depois=1005)
+    )
+
+    assert derrota.resultado == Resultado.DERROTA
+
+
+def test_editar_compara_com_a_partida_de_antes_dela():
+    sessao = abrir_sessao()
+    primeira = servico.registrar(None, sessao.id, nova_partida(mmr_depois=1010))
+    servico.registrar(None, sessao.id, nova_partida(mmr_depois=1020))
+
+    # A primeira e comparada com o MMR inicial (1000), nao com a ultima (1020).
+    editada = servico.substituir(None, primeira.id, edicao(mmr_depois=1005))
+
+    assert editada.mmr_depois == 1005
+    with pytest.raises(servico.PartidaInvalida, match="maior que 1000"):
+        servico.substituir(None, primeira.id, edicao(mmr_depois=1000))
+
+
+def test_editar_nao_e_barrado_pela_partida_seguinte():
+    sessao = abrir_sessao()
+    primeira = servico.registrar(None, sessao.id, nova_partida(mmr_depois=1010))
+    servico.registrar(None, sessao.id, nova_partida(mmr_depois=1020))
+
+    # Depois desta edicao a segunda vitoria parece ter baixado o MMR (1030 para
+    # 1020), mas a regra so confere a partida salva contra a de antes dela.
+    editada = servico.substituir(None, primeira.id, edicao(mmr_depois=1030))
+
+    assert editada.mmr_depois == 1030
+
+
 def test_listar_partidas_em_ordem_e_separadas_por_sessao():
     anterior = abrir_sessao()
     primeira = servico.registrar(None, anterior.id, nova_partida())
     segunda = servico.registrar(
-        None, anterior.id, nova_partida(gols_pro=0, gols_contra=1)
+        None, anterior.id, nova_partida(gols_pro=0, gols_contra=1, mmr_depois=1000)
     )
     servico_sessao.encerrar(None, anterior.id)
     atual = abrir_sessao()
@@ -176,7 +253,9 @@ def test_substituir_atualiza_placar_e_resultado():
     sessao = abrir_sessao()
     partida = servico.registrar(None, sessao.id, nova_partida())
 
-    editada = servico.substituir(None, partida.id, edicao(gols_pro=1, gols_contra=4))
+    editada = servico.substituir(
+        None, partida.id, edicao(gols_pro=1, gols_contra=4, mmr_depois=990)
+    )
 
     assert editada.gols_pro == 1
     assert editada.resultado == Resultado.DERROTA

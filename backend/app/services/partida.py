@@ -43,7 +43,7 @@ def registrar(db: Session, sessao_id: int, dados: PartidaCreate) -> Partida:
     """Registra uma partida na sessao, que precisa estar aberta."""
     sessao = servico_sessao.buscar(db, sessao_id)
     _garantir_sessao_aberta(sessao)
-    _validar_partida(sessao, dados)
+    _validar_partida(sessao, dados, _mmr_antes_de(db, sessao))
     return repositorio.criar(db, sessao_id, dados.model_dump())
 
 
@@ -52,7 +52,7 @@ def substituir(db: Session, partida_id: int, dados: PartidaReplace) -> Partida:
     partida = buscar(db, partida_id)
     sessao = servico_sessao.buscar(db, partida.sessao_id)
     _garantir_sessao_aberta(sessao)
-    _validar_partida(sessao, dados)
+    _validar_partida(sessao, dados, _mmr_antes_de(db, sessao, partida.id))
     return repositorio.atualizar(db, partida, dados.model_dump())
 
 
@@ -73,7 +73,22 @@ def _garantir_sessao_aberta(sessao: Sessao) -> None:
         )
 
 
-def _validar_partida(sessao: Sessao, dados: PartidaBase) -> None:
+def _mmr_antes_de(db: Session, sessao: Sessao, partida_id: int | None = None) -> int:
+    """MMR antes da partida: o da partida anterior da sessao ou, se nao houver
+    nenhuma antes dela, o MMR inicial. Sem partida_id, e o MMR antes de uma
+    partida nova, que entra no fim da sessao.
+
+    E a mesma conta da variacao de MMR nas estatisticas.
+    """
+    anteriores = [
+        p
+        for p in repositorio.listar_por_sessao(db, sessao.id)
+        if partida_id is None or p.id < partida_id
+    ]
+    return anteriores[-1].mmr_depois if anteriores else sessao.mmr_inicial
+
+
+def _validar_partida(sessao: Sessao, dados: PartidaBase, mmr_antes: int) -> None:
     """Regras que vem do proprio Rocket League."""
     if dados.gols_pro == dados.gols_contra:
         raise PartidaInvalida(
@@ -85,3 +100,15 @@ def _validar_partida(sessao: Sessao, dados: PartidaBase) -> None:
         )
     if sessao.playlist == Playlist.UM_CONTRA_UM and dados.companheiro:
         raise PartidaInvalida("Em sessões 1v1 não há companheiro de equipe.")
+    # Na ranqueada, vitoria sempre sobe o MMR e derrota sempre baixa.
+    venceu = dados.gols_pro > dados.gols_contra
+    if venceu and dados.mmr_depois <= mmr_antes:
+        raise PartidaInvalida(
+            "Numa vitória o MMR sobe: o MMR depois da partida precisa ser "
+            f"maior que {mmr_antes}."
+        )
+    if not venceu and dados.mmr_depois >= mmr_antes:
+        raise PartidaInvalida(
+            "Numa derrota o MMR cai: o MMR depois da partida precisa ser "
+            f"menor que {mmr_antes}."
+        )

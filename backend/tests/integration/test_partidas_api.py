@@ -38,6 +38,15 @@ def test_registrar_empate_retorna_422(client, sessao_aberta):
     assert "não existe empate" in resposta.json()["detail"]
 
 
+def test_registrar_vitoria_que_baixa_o_mmr_retorna_422(client, sessao_aberta):
+    resposta = client.post(
+        rota_partidas(sessao_aberta), json=VITORIA | {"mmr_depois": 990}
+    )
+
+    assert resposta.status_code == 422
+    assert "precisa ser maior que 1000" in resposta.json()["detail"]
+
+
 def test_registrar_overtime_com_diferenca_maior_que_um_retorna_422(
     client, sessao_aberta
 ):
@@ -142,6 +151,17 @@ def test_editar_para_empate_retorna_422(client, partida_registrada):
     )
 
     assert resposta.status_code == 422
+
+
+def test_editar_para_derrota_que_sobe_o_mmr_retorna_422(client, partida_registrada):
+    # E a primeira partida da sessao: a comparacao e com o MMR inicial (1000).
+    resposta = client.put(
+        f"/partidas/{partida_registrada['id']}",
+        json={"gols_pro": 1, "gols_contra": 2, "mmr_depois": 1005},
+    )
+
+    assert resposta.status_code == 422
+    assert "precisa ser menor que 1000" in resposta.json()["detail"]
 
 
 def test_editar_partida_de_sessao_encerrada_retorna_409(

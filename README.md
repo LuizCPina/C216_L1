@@ -6,7 +6,7 @@ Projeto Final da disciplina **C216 — Sistemas Distribuídos**: frontend React,
 
 ## Vídeo demonstrativo
 
-**Link:** _(a adicionar)_
+**Link:** 
 
 ## Objetivo e tema
 

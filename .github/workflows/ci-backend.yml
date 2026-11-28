@@ -1,0 +1,86 @@
+name: CI Backend
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  # Primeiro job: qualidade do código. É rápido e barra o resto se falhar.
+  lint:
+    name: Lint e formatação
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pipx install poetry==2.5.2
+
+      - name: Install dependencies
+        run: poetry install --no-root
+
+      - name: Ruff check
+        run: poetry run ruff check .
+
+      - name: Ruff format check
+        run: poetry run ruff format --check .
+
+  # Segundo job: só roda se o lint passar.
+  test:
+    name: Testes
+    needs: lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pipx install poetry==2.5.2
+
+      - name: Install dependencies
+        run: poetry install --no-root
+
+      # Os mesmos testes do make test, gerando os relatorios do make
+      # test-report em backend/relatorios: os HTMLs e, para o resumo, o
+      # resultado (junit.xml) e a cobertura (cobertura.xml).
+      - name: Run tests
+        run: >-
+          poetry run pytest -v
+          --html=relatorios/testes.html --self-contained-html
+          --junitxml=relatorios/junit.xml
+          --cov --cov-context=test
+          --cov-report=term --cov-report=html:relatorios/coverage
+          --cov-report=xml:relatorios/cobertura.xml
+
+      # Resumo em portugues na pagina da execucao. Roda mesmo se algum teste
+      # falhar, porque e justamente quando ele mais ajuda.
+      - name: Test summary
+        if: ${{ !cancelled() }}
+        run: python3 scripts/resumo_testes.py Backend relatorios/junit.xml relatorios/cobertura.xml >> "$GITHUB_STEP_SUMMARY"
+
+      # Mesmo se algum teste falhar, os relatorios sobem: e quando mais servem.
+      - name: Upload test reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: relatorio-backend
+          path: backend/relatorios/
+          retention-days: 7

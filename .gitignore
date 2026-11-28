@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Arquivos .md locais (nao versionar), exceto READMEs
+*.md
+!README.md
+
+# Relatorios de teste e cobertura (make test-report e make front-test-report)
+relatorios/

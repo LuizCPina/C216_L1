@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>Diário de Ranked</title>
+  <!-- Bola com as cores dos dois times: azul de um lado, laranja do outro. -->
+  <circle cx="16" cy="16" r="15" fill="#f8fafc" />
+  <path d="M16 2a14 14 0 0 0 0 28z" fill="#2563eb" />
+  <path d="M16 2a14 14 0 0 1 0 28z" fill="#ea580c" />
+  <path d="M16 10l5.7 4.1-2.2 6.8h-7l-2.2-6.8z" fill="#f8fafc" />
+</svg>
